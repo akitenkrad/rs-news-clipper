@@ -8,16 +8,6 @@ Rustで実装されたニュースクリッピングライブラリ．複数の�
 - RSSフィード解析とWebスクレイピング
 - 記事のプロパティ分析（AI関連、セキュリティ関連など）
 
-## 対応サイト
-
-テックブログ、AIニュース、セキュリティ情報など多数のソースに対応：
-
-- **テックブログ**: Cookpad, CyberAgent, DeNA, LINE, Mercari, Yahoo! Japan など
-- **AIニュース**: AI-DB, AINews, AI Scholar, MIT AI など
-- **セキュリティ**: AWS Security Blog, CrowdStrike, IPA, JPCERT, Trend Micro など
-- **メディア**: ITmedia, Gigazine, TechCrunch, Gizmodo, 日経xTECH など
-- **開発者向け**: GitHub Blog, Google Developers Blog, Rust Blog, Qiita, Zenn など
-
 ## 使用方法
 
 ```rust
