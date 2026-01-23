@@ -24,3 +24,5 @@ Cargo.lock
 
 ### Local ###
 .DS_Store
+.claude
+thoughts
