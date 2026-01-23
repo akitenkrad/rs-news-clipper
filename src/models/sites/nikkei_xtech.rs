@@ -74,7 +74,7 @@ impl WebSiteInterface for NikkeiXTech {
         let response = self.request(url.as_str(), &cookies).await?;
         let document = scraper::Html::parse_document(response.text().await?.as_str());
         let selector =
-            scraper::Selector::parse("main article div.p-article div.p-article_body").unwrap();
+            scraper::Selector::parse("article.p-article .p-article_body").unwrap();
         let article = match document.select(&selector).next() {
             Some(article) => article,
             None => {

@@ -109,7 +109,7 @@ impl WebSiteInterface for AIDB {
         let text = response.text().await?;
 
         let document = scraper::Html::parse_document(text.as_str());
-        let selector = scraper::Selector::parse("#contents #main_contents").unwrap();
+        let selector = scraper::Selector::parse(".post_content").unwrap();
         match document.select(&selector).next() {
             Some(elem) => {
                 let html = elem.html().to_string();

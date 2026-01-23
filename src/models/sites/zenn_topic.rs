@@ -82,7 +82,7 @@ impl WebSiteInterface for ZennTopic {
         let cookies = self.login().await?;
         let response = self.request(url.as_str(), &cookies).await?;
         let document = scraper::Html::parse_document(response.text().await?.as_str());
-        let selector = scraper::Selector::parse("article section div.BodyContent_anchorToHeadings__uGxNv").unwrap();
+        let selector = scraper::Selector::parse("article section").unwrap();
         let article = match document.select(&selector).next() {
             Some(article) => article,
             None => {
