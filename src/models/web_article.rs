@@ -5,6 +5,7 @@ use regex::Regex;
 use request::{Response, Url};
 use serde::{Deserialize, Serialize};
 use std::boxed::Box;
+use std::sync::OnceLock;
 use strum::{Display, EnumString};
 
 pub type Html = String;
@@ -100,6 +101,28 @@ impl WebArticle {
     }
 }
 
+static HTTP_CLIENT: OnceLock<request::Client> = OnceLock::new();
+
+fn shared_client() -> &'static request::Client {
+    HTTP_CLIENT.get_or_init(|| {
+        let mut headers = request::header::HeaderMap::new();
+        headers.insert(
+            request::header::USER_AGENT,
+            format!("{}/{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"))
+                .parse()
+                .unwrap(),
+        );
+
+        request::ClientBuilder::new()
+            .default_headers(headers)
+            .timeout(std::time::Duration::from_secs(60))
+            .pool_max_idle_per_host(10)
+            .tcp_keepalive(std::time::Duration::from_secs(30))
+            .build()
+            .expect("Failed to build HTTP client")
+    })
+}
+
 #[async_trait::async_trait]
 pub trait WebSiteInterface: Send + Sync {
     fn site_name(&self) -> String;
@@ -118,28 +141,13 @@ pub trait WebSiteInterface: Send + Sync {
     async fn request(&self, url: &str, cookie_str: &str) -> AppResult<Response> {
         let url = request::Url::parse(url).unwrap();
 
-        // Set Header
-        let mut headers = request::header::HeaderMap::new();
-        headers.insert(
-            request::header::USER_AGENT,
-            format!("{}/{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"))
-                .parse()
-                .unwrap(),
-        );
+        let mut request_builder = shared_client().get(url);
 
-        // Set Cookie
-        let cookies = std::sync::Arc::new(request::cookie::Jar::default());
-        cookies.add_cookie_str(cookie_str, &url);
+        if !cookie_str.is_empty() {
+            request_builder = request_builder.header(request::header::COOKIE, cookie_str);
+        }
 
-        let client_builder = request::ClientBuilder::new();
-        let client = client_builder
-            .default_headers(headers)
-            .cookie_provider(cookies)
-            .timeout(std::time::Duration::from_secs(60))
-            .build()
-            .unwrap();
-
-        let response = match client.get(url).send().await {
+        let response = match request_builder.send().await {
             Ok(response) => response,
             Err(e) => return Err(AppError::RequestError(e)),
         };
