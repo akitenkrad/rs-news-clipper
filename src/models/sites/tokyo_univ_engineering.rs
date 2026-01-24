@@ -77,14 +77,28 @@ impl WebSiteInterface for TokyoUniversityEngineering {
         let cookies = self.login().await?;
         let response = self.request(url.as_str(), &cookies).await?;
         let document = scraper::Html::parse_document(response.text().await?.as_str());
-        let selector = scraper::Selector::parse("main div.ly_cont div.blog_title,div.bl_wysiwyg").unwrap();
-        let article = match document.select(&selector).next() {
+
+        let selectors = [
+            "div.blog-body-1__content",
+            "main div.ly_cont div.blog_title",
+            "div.bl_wysiwyg",
+        ];
+
+        let mut article_element = None;
+        for sel_str in &selectors {
+            let selector = scraper::Selector::parse(sel_str).unwrap();
+            if let Some(element) = document.select(&selector).next() {
+                article_element = Some(element);
+                break;
+            }
+        }
+
+        let article = match article_element {
             Some(article) => article,
             None => {
-                return Err(AppError::ScrapeError(format!(
-                    "Failed to find article content: {:?}",
-                    selector
-                )));
+                return Err(AppError::ScrapeError(
+                    "Failed to find article content: no matching selector found for Tokyo University Engineering".into(),
+                ));
             }
         };
         let html = article.html().to_string();

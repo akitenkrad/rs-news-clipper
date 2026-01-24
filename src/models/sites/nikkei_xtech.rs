@@ -73,15 +73,28 @@ impl WebSiteInterface for NikkeiXTech {
         let cookies = self.cookies.clone().unwrap_or_default();
         let response = self.request(url.as_str(), &cookies).await?;
         let document = scraper::Html::parse_document(response.text().await?.as_str());
-        let selector =
-            scraper::Selector::parse("article.p-article .p-article_body").unwrap();
-        let article = match document.select(&selector).next() {
+
+        let selectors = [
+            "div.article_body",
+            "article.article div.articleBody",
+            "article.p-article .p-article_body",
+        ];
+
+        let mut article_element = None;
+        for sel_str in &selectors {
+            let selector = scraper::Selector::parse(sel_str).unwrap();
+            if let Some(element) = document.select(&selector).next() {
+                article_element = Some(element);
+                break;
+            }
+        }
+
+        let article = match article_element {
             Some(article) => article,
             None => {
-                return Err(AppError::ScrapeError(format!(
-                    "Failed to parse article: {:?}",
-                    selector
-                )));
+                return Err(AppError::ScrapeError(
+                    "Failed to parse article: no matching selector found for Nikkei XTech".into(),
+                ));
             }
         };
         let html = article.html().to_string();

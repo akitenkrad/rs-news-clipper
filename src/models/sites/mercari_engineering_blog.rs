@@ -77,13 +77,28 @@ impl WebSiteInterface for MercariEngineeringBlog {
         let cookies = self.login().await?;
         let response = self.request(url.as_str(), &cookies).await?;
         let document = scraper::Html::parse_document(response.text().await?.as_str());
-        let selector = scraper::Selector::parse("main div.page-content").unwrap();
-        let article = match document.select(&selector).next() {
+
+        // Try multiple selectors for robustness (Astro migration changed the page structure)
+        let selectors = [
+            "div.page-content",
+            "main div.page-content",
+            "main section div._body_5d9ad_19",
+        ];
+
+        let mut article_element = None;
+        for sel_str in &selectors {
+            let selector = scraper::Selector::parse(sel_str).unwrap();
+            if let Some(element) = document.select(&selector).next() {
+                article_element = Some(element);
+                break;
+            }
+        }
+
+        let article = match article_element {
             Some(article) => article,
             None => {
                 return Err(AppError::ScrapeError(format!(
-                    "Failed to parse article: {:?}",
-                    selector
+                    "Failed to parse article: no matching selector found for Mercari Engineering Blog"
                 )));
             }
         };
