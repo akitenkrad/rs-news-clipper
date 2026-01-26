@@ -43,6 +43,24 @@ impl WebSiteInterface for ITMediaGeneral {
         "www.itmedia.co.jp".to_string() // This is the correct domain for ITMedia General
     }
 
+    /// ITmedia固有の除外セレクタ
+    fn site_specific_exclude_selectors(&self) -> Vec<&'static str> {
+        vec![
+            // プレミアム記事案内
+            ".premium-info",
+            ".premium-banner",
+            // 記事評価・フィードバック
+            ".article-rating",
+            ".feedback",
+            // メルマガ・会員登録
+            ".newsletter",
+            ".member-banner",
+            // 続きを読むボタン
+            ".read-more",
+            ".colBoxPremium",
+        ]
+    }
+
     async fn login(&mut self) -> AppResult<Cookie> {
         Ok(Cookie::default())
     }
@@ -98,7 +116,8 @@ impl WebSiteInterface for ITMediaGeneral {
                 )));
             }
         };
-        let html = article.html().to_string();
+        let raw_html = article.html().to_string();
+        let html = self.clean_content(&raw_html);
         let text = html2md::rewrite_html(&html, false);
         Ok((self.trim_text(&html), self.trim_text(&text)))
     }

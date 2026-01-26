@@ -40,6 +40,19 @@ impl WebSiteInterface for ZennTrend {
         self.url.domain().unwrap().to_string()
     }
 
+    /// Zenn固有の除外セレクタ
+    fn site_specific_exclude_selectors(&self) -> Vec<&'static str> {
+        vec![
+            // いいね・ブックマークボタン
+            ".LikeButton",
+            ".BookmarkButton",
+            // 著者プロフィール
+            ".AuthorProfile",
+            // サポートボタン
+            ".SupportButton",
+        ]
+    }
+
     async fn login(&mut self) -> AppResult<Cookie> {
         Ok(Cookie::default())
     }
@@ -84,7 +97,8 @@ impl WebSiteInterface for ZennTrend {
                 )));
             }
         };
-        let html = article.html().to_string();
+        let raw_html = article.html().to_string();
+        let html = self.clean_content(&raw_html);
         let text = html2md::rewrite_html(&html, false);
         Ok((self.trim_text(&html), self.trim_text(&text)))
     }

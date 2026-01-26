@@ -86,7 +86,8 @@ impl WebSiteInterface for YahooJapanTechBlog {
                 )));
             }
         };
-        let html = article.html();
+        let raw_html = article.html();
+        let html = self.clean_content(&raw_html);
         let text = html2md::rewrite_html(&html, false);
         Ok((self.trim_text(&html), self.trim_text(&text)))
     }

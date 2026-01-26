@@ -120,4 +120,65 @@ mod tests {
         }
         assert!(!articles.is_empty());
     }
+
+    /// parse_article の統合テスト：実際のサイトから記事を取得してパースする
+    #[tokio::test]
+    async fn test_parse_article_clean_content() {
+        init_logger("INFO").expect("Failed to initialize logger");
+
+        // テスト対象のサイト（clean_content を適用したもの）
+        let test_sites: Vec<Box<dyn WebSiteInterface>> = vec![
+            Box::new(qiita_blog::QiitaBlog::default()),
+            Box::new(tech_crunch::TechCrunch::default()),
+        ];
+
+        for site in test_sites {
+            let mut site = site;
+            let site_name = site.site_name();
+            event!(Level::INFO, "Testing parse_article for: {}", site_name);
+
+            // 記事一覧を取得
+            let articles = match site.get_articles().await {
+                Ok(articles) => articles,
+                Err(e) => {
+                    event!(Level::WARN, "Skipping {} due to error: {}", site_name, e);
+                    continue;
+                }
+            };
+
+            if articles.is_empty() {
+                event!(Level::WARN, "No articles found for {}", site_name);
+                continue;
+            }
+
+            // 最初の記事をパース
+            let article = &articles[0];
+            event!(Level::INFO, "Parsing article: {}", article.title);
+
+            let (html, text) = match site.parse_article(&article.article_url).await {
+                Ok(result) => result,
+                Err(e) => {
+                    event!(Level::WARN, "Failed to parse article from {}: {}", site_name, e);
+                    continue;
+                }
+            };
+
+            // 除外されるべき要素が含まれていないことを確認
+            assert!(!html.contains("<nav>"), "{}: nav should be removed", site_name);
+            assert!(!html.contains("<script>"), "{}: script should be removed", site_name);
+            assert!(!html.contains("<aside>"), "{}: aside should be removed", site_name);
+
+            // コンテンツが存在することを確認
+            assert!(!html.is_empty(), "{}: html should not be empty", site_name);
+            assert!(!text.is_empty(), "{}: text should not be empty", site_name);
+
+            event!(
+                Level::INFO,
+                "{}: html length={}, text length={}",
+                site_name,
+                html.len(),
+                text.len()
+            );
+        }
+    }
 }

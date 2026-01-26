@@ -118,7 +118,8 @@ impl WebSiteInterface for Medium {
         };
         let (html, text) = match doc.select(&sel).next() {
             Some(elem) => {
-                let html = elem.html().to_string();
+                let raw_html = elem.html().to_string();
+                let html = self.clean_content(&raw_html);
                 (html.clone(), html2md::rewrite_html(&html, false))
             }
             None => ("NO HTML".into(), "NO TEXT".into()),

@@ -73,7 +73,9 @@ impl WebSiteInterface for TechCrunch {
         let url = Url::parse(url).unwrap();
         let cookies = self.login().await?;
         let response = self.request(url.as_str(), &cookies).await?;
-        let document = scraper::Html::parse_document(response.text().await?.as_str());
+        // 全体をクリーンにしてからセレクタで選択
+        let cleaned_response = self.clean_content(&response.text().await?);
+        let document = scraper::Html::parse_document(&cleaned_response);
         let selector = scraper::Selector::parse("main div.entry-content p").unwrap();
         let html = document
             .select(&selector)

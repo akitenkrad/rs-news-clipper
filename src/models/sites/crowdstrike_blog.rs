@@ -80,7 +80,8 @@ impl WebSiteInterface for CrowdStrikeBlog {
         let selector = scraper::Selector::parse("div.root div.cmp-container-wp").unwrap();
         match document.select(&selector).next() {
             Some(elem) => {
-                let html = elem.html().to_string();
+                let raw_html = elem.html().to_string();
+                let html = self.clean_content(&raw_html);
                 let text = html2md::rewrite_html(&html, false);
                 Ok((self.trim_text(&html), self.trim_text(&text)))
             }

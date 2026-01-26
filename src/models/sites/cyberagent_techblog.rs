@@ -78,7 +78,8 @@ impl WebSiteInterface for CyberAgentTechBlog {
         let selector = scraper::Selector::parse("main div.notion-text").unwrap();
         match document.select(&selector).next() {
             Some(elem) => {
-                let html = elem.html().to_string();
+                let raw_html = elem.html().to_string();
+                let html = self.clean_content(&raw_html);
                 let text = html2md::rewrite_html(&html, false);
                 return Ok((self.trim_text(&html), self.trim_text(&text)));
             }
@@ -88,7 +89,8 @@ impl WebSiteInterface for CyberAgentTechBlog {
         match document.select(&selector).next() {
             Some(elem) => {
                 let text = elem.text().collect::<Vec<_>>().join("\n");
-                let html = elem.html().to_string();
+                let raw_html = elem.html().to_string();
+                let html = self.clean_content(&raw_html);
                 return Ok((self.trim_text(&html), self.trim_text(&text)));
             }
             None => {}

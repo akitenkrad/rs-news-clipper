@@ -43,6 +43,16 @@ impl WebSiteInterface for ITMediaEnterprise {
         "www.itmedia.co.jp/enterprise".to_string() // This is the correct domain for ITMedia Enterprise
     }
 
+    /// ITmedia固有の除外セレクタ
+    fn site_specific_exclude_selectors(&self) -> Vec<&'static str> {
+        vec![
+            ".premium-info", ".premium-banner",
+            ".article-rating", ".feedback",
+            ".newsletter", ".member-banner",
+            ".read-more", ".colBoxPremium",
+        ]
+    }
+
     async fn login(&mut self) -> AppResult<Cookie> {
         Ok(Cookie::default())
     }
@@ -97,7 +107,8 @@ impl WebSiteInterface for ITMediaEnterprise {
                 )));
             }
         };
-        let html = article.html().to_string();
+        let raw_html = article.html().to_string();
+        let html = self.clean_content(&raw_html);
         let text = html2md::rewrite_html(&html, false);
         Ok((self.trim_text(&html), self.trim_text(&text)))
     }

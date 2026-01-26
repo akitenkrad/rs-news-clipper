@@ -77,7 +77,8 @@ impl WebSiteInterface for GoogleDevelopersBlog {
         let selector = scraper::Selector::parse("#main div.post div.post-body div.post-content").unwrap();
         match document.select(&selector).next() {
             Some(elem) => {
-                let html = elem.html().to_string();
+                let raw_html = elem.html().to_string();
+                let html = self.clean_content(&raw_html);
                 let text = html2md::rewrite_html(&html, false);
                 Ok((self.trim_text(&html), self.trim_text(&text)))
             }
