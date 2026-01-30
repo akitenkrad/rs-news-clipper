@@ -26,7 +26,8 @@ pub async fn get_all_sites() -> AppResult<Vec<Box<dyn WebSiteInterface>>> {
         Box::new(gigazine::Gigazine::default()),
         Box::new(github_developers_blog::GitHubDevelopersBlog::default()),
         Box::new(gizmodo::Gizmodo::default()),
-        Box::new(google_developers_blog::GoogleDevelopersBlog::default()),
+        // TODO: investigate reqwest decoding error
+        // Box::new(google_developers_blog::GoogleDevelopersBlog::default()),
         Box::new(gree_techblog::GreeTechBlog::default()),
         Box::new(gunosy_techblog::GunosyTechBlog::default()),
         Box::new(ipa_security_center::IPASecurityCenter::default()),
