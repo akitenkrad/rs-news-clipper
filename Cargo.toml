@@ -24,7 +24,7 @@ keyword-tools = { git = "https://github.com/akitenkrad/rs-keyword-tools", branch
 mockall = "0.14.0"
 openai-tools = { git = "https://github.com/akitenkrad/rs-openai-tools", branch = "main" }
 regex = "1.12.2"
-request = { version = "0.12.24", features = ["cookies"], package = "reqwest" }
+request = { version = "0.12.24", features = ["cookies", "gzip", "brotli", "deflate"], package = "reqwest" }
 rsrpp = "1.0.18"
 scraper = "0.24.0"
 serde = "1.0.228"

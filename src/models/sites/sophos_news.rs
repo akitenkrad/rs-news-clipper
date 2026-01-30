@@ -4,7 +4,7 @@ use feed_parser::parsers;
 use request::Url;
 use crate::shared::errors::{AppError, AppResult};
 
-const URL: &str = "https://news.sophos.com/ja-jp/feed/";
+const URL: &str = "https://news.sophos.com/en-us/feed/";
 
 #[derive(Debug, Clone)]
 pub struct SophosNews {

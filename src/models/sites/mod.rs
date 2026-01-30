@@ -36,7 +36,6 @@ pub mod moneyforward_developers_blog;
 pub mod motex;
 pub mod nikkei_xtech;
 pub mod qiita_blog;
-pub mod retrieva_techblog;
 pub mod rust_blog;
 pub mod sakura_internet_techblog;
 pub mod sansan;

@@ -53,7 +53,6 @@ pub async fn get_all_sites() -> AppResult<Vec<Box<dyn WebSiteInterface>>> {
         Box::new(motex::MoTex::default()),
         Box::new(nikkei_xtech::NikkeiXTech::default()),
         Box::new(qiita_blog::QiitaBlog::default()),
-        Box::new(retrieva_techblog::RetrievaTechBlog::default()),
         Box::new(rust_blog::RustBlog::default()),
         Box::new(sakura_internet_techblog::SakuraInternetTechBlog::default()),
         Box::new(sansan::Sansan::default()),
