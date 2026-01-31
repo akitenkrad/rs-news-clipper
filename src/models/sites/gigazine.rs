@@ -67,19 +67,21 @@ impl WebSiteInterface for Gigazine {
         };
         let articles = feeds
             .iter()
-            .map(|feed| {
-                WebArticle::new(
+            .map(|feed| -> AppResult<WebArticle> {
+                let publish_date = feed
+                    .publish_date
+                    .clone()
+                    .ok_or_else(|| AppError::ScrapeError("Missing publish_date".into()))?;
+                Ok(WebArticle::new(
                     self.site_name(),
                     self.site_url().to_string(),
                     feed.title.clone(),
                     feed.link.clone(),
                     feed.description.clone().unwrap_or("".to_string()),
-                    DateTime::parse_from_rfc2822(&feed.publish_date.clone().unwrap())
-                        .unwrap()
-                        .into(),
-                )
+                    DateTime::parse_from_rfc2822(&publish_date)?.into(),
+                ))
             })
-            .collect::<Vec<WebArticle>>();
+            .collect::<AppResult<Vec<WebArticle>>>()?;
         Ok(articles)
     }
     async fn parse_article(&mut self, url: &str) -> AppResult<(Html, Text)> {

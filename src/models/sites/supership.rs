@@ -53,31 +53,23 @@ impl WebSiteInterface for Supership {
         let sel = Selector::parse("main article ul.p-magazine__archive li.p-magazine__card").unwrap();
         for li in doc.select(&sel) {
             let title_sel = Selector::parse("p.p-magazine__card_title").unwrap();
-            let title_text = li
-                .select(&title_sel)
-                .next()
-                .unwrap()
-                .text()
-                .collect::<Vec<_>>()
-                .join("");
+            let title_text = match li.select(&title_sel).next() {
+                Some(elem) => elem.text().collect::<Vec<_>>().join(""),
+                None => continue,
+            };
             let url_sel = Selector::parse("a").unwrap();
-            let url = li
-                .select(&url_sel)
-                .next()
-                .unwrap()
-                .value()
-                .attr("href")
-                .unwrap()
-                .to_string();
+            let url = match li.select(&url_sel).next() {
+                Some(elem) => match elem.value().attr("href") {
+                    Some(href) => href.to_string(),
+                    None => continue,
+                },
+                None => continue,
+            };
             let pubdate_sel = Selector::parse("time.p-magazine__card_time").unwrap();
-            let publish_date_text = li
-                .select(&pubdate_sel)
-                .next()
-                .unwrap()
-                .text()
-                .collect::<Vec<_>>()
-                .join("")
-                + " 00:00:00+09:00";
+            let publish_date_text = match li.select(&pubdate_sel).next() {
+                Some(elem) => elem.text().collect::<Vec<_>>().join("") + " 00:00:00+09:00",
+                None => continue,
+            };
             let publish_date = match DateTime::parse_from_str(&publish_date_text, "%Y.%m.%d %H:%M:%S%z") {
                 Ok(x) => x,
                 Err(e) => {

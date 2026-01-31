@@ -55,19 +55,21 @@ impl WebSiteInterface for GunosyTechBlog {
         };
         let articles = feeds
             .iter()
-            .map(|feed| {
-                WebArticle::new(
+            .map(|feed| -> AppResult<WebArticle> {
+                let updated = feed
+                    .updated
+                    .clone()
+                    .ok_or_else(|| AppError::ScrapeError("Missing updated".into()))?;
+                Ok(WebArticle::new(
                     self.site_name(),
                     self.site_url().to_string(),
                     feed.title.clone(),
                     feed.link.clone(),
                     feed.description.clone().unwrap_or("".to_string()),
-                    DateTime::parse_from_rfc3339(&feed.updated.clone().unwrap())
-                        .unwrap()
-                        .into(),
-                )
+                    DateTime::parse_from_rfc3339(&updated)?.into(),
+                ))
             })
-            .collect::<Vec<WebArticle>>();
+            .collect::<AppResult<Vec<WebArticle>>>()?;
         Ok(articles)
     }
     async fn parse_article(&mut self, url: &str) -> AppResult<(Html, Text)> {

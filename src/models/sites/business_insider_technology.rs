@@ -48,7 +48,7 @@ impl WebSiteInterface for BusinessInsiderTechnology {
         let response = self.request(self.url.as_str(), &cookies).await?;
 
         // parse html
-        let doc = scraper::Html::parse_document(response.text().await.unwrap().as_str());
+        let doc = scraper::Html::parse_document(response.text().await?.as_str());
         let sel =
             Selector::parse("#mainContent div.p-cardList-content div.p-cardList-card").unwrap();
         let articles = doc
@@ -103,7 +103,7 @@ impl WebSiteInterface for BusinessInsiderTechnology {
         let url = Url::parse(url).unwrap();
         let cookies = self.login().await?;
         let response = self.request(url.as_str(), &cookies).await?;
-        let doc = scraper::Html::parse_document(response.text().await.unwrap().as_str());
+        let doc = scraper::Html::parse_document(response.text().await?.as_str());
         let sel = Selector::parse("article div.p-post-content").unwrap();
         match doc.select(&sel).next() {
             Some(elem) => {

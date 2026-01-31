@@ -58,32 +58,40 @@ impl WebSiteInterface for StockmarkTechBlog {
             let url_selector = Selector::parse("div.archive-entry-header h1 a").unwrap();
             let date_selector = Selector::parse("div.archive-entry-header div.archive-date").unwrap();
 
+            let title = match post.select(&title_selector).next() {
+                Some(elem) => elem.text().collect(),
+                None => continue,
+            };
+            let url = match post.select(&url_selector).next() {
+                Some(elem) => match elem.value().attr("href") {
+                    Some(href) => href.to_string(),
+                    None => continue,
+                },
+                None => continue,
+            };
+            let desc = match post.select(&desc_selector).next() {
+                Some(elem) => elem.text().collect(),
+                None => String::new(),
+            };
+            let date_text = match post.select(&date_selector).next() {
+                Some(elem) => elem.text().collect::<Vec<_>>().join(""),
+                None => continue,
+            };
+            let publish_date = match DateTime::parse_from_str(
+                &format!("{} 00:00:00+0900", date_text),
+                "%Y-%m-%d %H:%M:%S%z",
+            ) {
+                Ok(date) => date.into(),
+                Err(_) => continue,
+            };
+
             let article = WebArticle::new(
                 self.site_name(),
                 self.site_url().to_string(),
-                post.select(&title_selector).next().unwrap().text().collect(),
-                post.select(&url_selector)
-                    .next()
-                    .unwrap()
-                    .value()
-                    .attr("href")
-                    .unwrap()
-                    .to_string(),
-                post.select(&desc_selector).next().unwrap().text().collect(),
-                DateTime::parse_from_str(
-                    &format!(
-                        "{} 00:00:00+0900",
-                        post.select(&date_selector)
-                            .next()
-                            .unwrap()
-                            .text()
-                            .collect::<Vec<_>>()
-                            .join("")
-                    ),
-                    "%Y-%m-%d %H:%M:%S%z",
-                )
-                .unwrap()
-                .into(),
+                title,
+                url,
+                desc,
+                publish_date,
             );
             articles.push(article);
         }

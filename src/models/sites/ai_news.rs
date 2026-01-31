@@ -46,23 +46,29 @@ impl WebSiteInterface for AINews {
         let cookies = self.login().await?;
         let response = self.request(self.url.as_str(), &cookies).await?;
 
-        let feeds = parsers::atom::parse(response.text().await?.as_str())
-            .expect("Failed to parse Atom feed");
+        let feeds = match parsers::atom::parse(response.text().await?.as_str()) {
+            Ok(feeds) => feeds,
+            Err(e) => {
+                return Err(AppError::ScrapeError(format!("Failed to parse Atom feed: {}", e)));
+            }
+        };
         let articles = feeds
             .iter()
-            .filter_map(|feed| {
-                Some(WebArticle::new(
+            .map(|feed| -> AppResult<WebArticle> {
+                let publish_date = feed
+                    .publish_date
+                    .clone()
+                    .ok_or_else(|| AppError::ScrapeError("Missing publish_date".into()))?;
+                Ok(WebArticle::new(
                     self.site_name(),
                     self.site_url().to_string(),
                     feed.title.clone(),
                     feed.link.clone(),
                     feed.description.clone().unwrap_or("".to_string()),
-                    DateTime::parse_from_rfc3339(&feed.publish_date.clone().unwrap())
-                        .unwrap()
-                        .into(),
+                    DateTime::parse_from_rfc3339(&publish_date)?.into(),
                 ))
             })
-            .collect::<Vec<WebArticle>>();
+            .collect::<AppResult<Vec<WebArticle>>>()?;
         Ok(articles)
     }
 

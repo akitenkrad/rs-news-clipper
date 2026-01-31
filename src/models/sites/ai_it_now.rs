@@ -49,19 +49,23 @@ impl WebSiteInterface for AIItNow {
         } else {
             return Err(AppError::ScrapeError("Failed to parse RSS".into()));
         };
-        let mut articles = Vec::new();
-        for feed in feeds {
-            articles.push(WebArticle::new(
-                self.site_name(),
-                self.site_url().to_string(),
-                feed.title,
-                feed.link,
-                feed.description.unwrap_or("".to_string()),
-                DateTime::parse_from_rfc2822(&feed.publish_date.unwrap())
-                    .unwrap()
-                    .into(),
-            ));
-        }
+        let articles = feeds
+            .iter()
+            .map(|feed| -> AppResult<WebArticle> {
+                let publish_date = feed
+                    .publish_date
+                    .clone()
+                    .ok_or_else(|| AppError::ScrapeError("Missing publish_date".into()))?;
+                Ok(WebArticle::new(
+                    self.site_name(),
+                    self.site_url().to_string(),
+                    feed.title.clone(),
+                    feed.link.clone(),
+                    feed.description.clone().unwrap_or("".to_string()),
+                    DateTime::parse_from_rfc2822(&publish_date)?.into(),
+                ))
+            })
+            .collect::<AppResult<Vec<WebArticle>>>()?;
         Ok(articles)
     }
     async fn parse_article(&mut self, url: &str) -> AppResult<(Html, Text)> {

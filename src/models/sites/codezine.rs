@@ -59,9 +59,15 @@ impl WebSiteInterface for CodeZine {
             for item in ul.select(&sel) {
                 // title, url
                 let title_sel = Selector::parse("p.c-articleindex_item_heading a").unwrap();
-                let title = item.select(&title_sel).next().unwrap();
+                let title = match item.select(&title_sel).next() {
+                    Some(elem) => elem,
+                    None => continue,
+                };
                 let tilte_text = title.text().collect::<Vec<_>>().join("");
-                let url = title.value().attr("href").unwrap().to_string();
+                let url = match title.value().attr("href") {
+                    Some(href) => href.to_string(),
+                    None => continue,
+                };
 
                 // date
                 let date_sel = Selector::parse("p.c-featureindex_item_date").unwrap();

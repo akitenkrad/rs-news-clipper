@@ -56,16 +56,19 @@ impl WebSiteInterface for Medium {
         let sel = Selector::parse("article").unwrap();
         for article in doc.select(&sel) {
             let title_sel = Selector::parse("a h2").unwrap();
-            let title_text = article
-                .select(&title_sel)
-                .next()
-                .unwrap()
-                .text()
-                .collect::<Vec<_>>()
-                .join("");
+            let title_text = match article.select(&title_sel).next() {
+                Some(elem) => elem.text().collect::<Vec<_>>().join(""),
+                None => continue,
+            };
             let mut url = Url::parse("https://medium.com").unwrap();
             let a_sel = Selector::parse("div a").unwrap();
-            let href = article.select(&a_sel).next().unwrap().value().attr("href").unwrap();
+            let href = match article.select(&a_sel).next() {
+                Some(elem) => match elem.value().attr("href") {
+                    Some(h) => h,
+                    None => continue,
+                },
+                None => continue,
+            };
             if href.contains("https://") {
                 url = Url::parse(href).unwrap();
             } else {

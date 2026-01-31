@@ -30,6 +30,10 @@ pub enum AppError {
     #[error("Json Parse Error: {0}")]
     JsonParseError(#[from] serde_json::Error),
 
+    // from chrono errors
+    #[error("DateTime Parse Error: {0}")]
+    DateTimeParseError(#[from] chrono::ParseError),
+
     // from scrape errors
     #[error("Scrape Error: {0}")]
     ScrapeError(String),
@@ -51,6 +55,7 @@ fn app_error_to_status_code(error: &AppError) -> StatusCode {
         AppError::JsonParseError(_) => StatusCode::BAD_REQUEST,
         AppError::ScrapeError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         AppError::OpenAIToolError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        AppError::DateTimeParseError(_) => StatusCode::BAD_REQUEST,
     }
 }
 

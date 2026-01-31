@@ -57,19 +57,21 @@ impl WebSiteInterface for CrowdStrikeBlog {
         };
         let articles = feeds
             .iter()
-            .map(|feed| {
-                WebArticle::new(
+            .map(|feed| -> AppResult<WebArticle> {
+                let publish_date = feed
+                    .publish_date
+                    .clone()
+                    .ok_or_else(|| AppError::ScrapeError("Missing publish_date".into()))?;
+                Ok(WebArticle::new(
                     self.site_name(),
                     self.site_url().to_string(),
                     feed.title.clone(),
                     feed.link.clone(),
                     feed.description.clone().unwrap_or("".to_string()),
-                    DateTime::parse_from_str(&feed.publish_date.clone().unwrap(), "%b %d, %Y %H:%M:%S%z")
-                        .unwrap()
-                        .into(),
-                )
+                    DateTime::parse_from_str(&publish_date, "%b %d, %Y %H:%M:%S%z")?.into(),
+                ))
             })
-            .collect::<Vec<WebArticle>>();
+            .collect::<AppResult<Vec<WebArticle>>>()?;
         Ok(articles)
     }
     async fn parse_article(&mut self, url: &str) -> AppResult<(Html, Text)> {

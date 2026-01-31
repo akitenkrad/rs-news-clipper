@@ -54,25 +54,14 @@ impl WebSiteInterface for AIScholar {
                 .unwrap();
         let articles = doc
             .select(&sel)
-            .map(|article| {
+            .filter_map(|article| {
                 let a_sel = Selector::parse("a").unwrap();
-                let title_text = article
-                    .select(&a_sel)
-                    .next()
-                    .unwrap()
-                    .text()
-                    .collect::<Vec<_>>()
-                    .join("");
-                let url = article
-                    .select(&a_sel)
-                    .next()
-                    .unwrap()
-                    .value()
-                    .attr("href")
-                    .unwrap();
+                let a_elem = article.select(&a_sel).next()?;
+                let title_text = a_elem.text().collect::<Vec<_>>().join("");
+                let url = a_elem.value().attr("href")?;
                 let date_sel = Selector::parse("a div.list-item__description time").unwrap();
                 let mut date_text = match article.select(&date_sel).next() {
-                    Some(x) => x.value().attr("datetime").unwrap().to_string(),
+                    Some(x) => x.value().attr("datetime").unwrap_or_default().to_string(),
                     None => String::default(),
                 };
                 date_text.push_str("+09:00");
@@ -85,14 +74,14 @@ impl WebSiteInterface for AIScholar {
                     Ok(x) => x.with_timezone(&Local),
                     Err(_) => DateTime::<Local>::default(),
                 };
-                WebArticle::new(
+                Some(WebArticle::new(
                     self.site_name(),
                     self.site_url().to_string(),
                     title_text,
                     url.to_string(),
                     desc_text,
                     date,
-                )
+                ))
             })
             .collect::<Vec<WebArticle>>();
         Ok(articles)
