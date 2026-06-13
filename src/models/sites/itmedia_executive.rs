@@ -87,7 +87,11 @@ impl WebSiteInterface for ITMediaExecutive {
         let url = Url::parse(url).unwrap();
         let cookies = self.login().await?;
         let response = self.request(url.as_str(), &cookies).await?;
-        let document = scraper::Html::parse_document(response.text().await?.as_str());
+        let raw = response.text().await?;
+        if crate::models::web_article::detect_login_required(&raw) {
+            return Err(AppError::LoginRequired);
+        }
+        let document = scraper::Html::parse_document(raw.as_str());
         let selector = match scraper::Selector::parse("#cmsBody div.inner p") {
             Ok(selector) => selector,
             Err(e) => {

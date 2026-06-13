@@ -317,6 +317,55 @@ pub struct WebSite {
     pub url: String,
 }
 
+/// 全文が会員ログイン／ペイウォールの背後にあることを示すマーカー文字列の一覧．
+/// `detect_login_required` で利用する．誤検知を抑えるため，
+/// 単独の「ログイン」「会員」のような一般語ではなく，
+/// ペイウォールを強く示唆するフレーズのみを収録している．
+const LOGIN_REQUIRED_MARKERS: &[&str] = &[
+    // 日本語マーカー
+    "会員登録",
+    "ログインして続きを読む",
+    "ログインが必要",
+    "この記事は会員限定",
+    "会員限定",
+    "有料会員",
+    "続きを読むには",
+    "無料会員登録",
+    "ログインまたは会員登録",
+    "プレミアム会員",
+    "の続きを読む",
+    // 英語マーカー
+    "sign in to read",
+    "subscribe to continue",
+    "subscribe to read",
+    "members only",
+    "log in to continue",
+    "this content is for members",
+    "paywall",
+    "register to read",
+];
+
+/// 生のページHTMLに，記事全文が会員ログイン／ペイウォールの背後にあることを
+/// 示すマーカーが含まれているかを判定する．
+///
+/// # ヒューリスティック
+/// - 入力はコンテンツ抽出前（pre-extraction）の生HTMLを想定している．
+///   セレクタで本文を切り出した後ではペイウォール案内が除去されている
+///   可能性があるため，必ず抽出前に走査する．
+/// - HTML全体を小文字化し，`LOGIN_REQUIRED_MARKERS` のいずれかの
+///   フレーズが部分一致するかどうかで判定する（日本語マーカーは
+///   小文字化の影響を受けない）．
+/// - 誤検知を抑えるため，ペイウォールを強く示唆するフレーズのみを
+///   マーカーとして採用している．
+///
+/// 返り値: マーカーが1つでも含まれていれば `true`．
+pub fn detect_login_required(raw_html: &str) -> bool {
+    let lower = raw_html.to_lowercase();
+    LOGIN_REQUIRED_MARKERS
+        .iter()
+        .any(|marker| lower.contains(&marker.to_lowercase()))
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WebArticle {
     pub site: WebSite,
@@ -327,6 +376,8 @@ pub struct WebArticle {
     pub timestamp: DateTime<Local>,
     pub text: String,
     pub html: String,
+    #[serde(default)]
+    pub requires_login: bool,
 }
 
 impl WebArticle {
@@ -360,6 +411,7 @@ impl WebArticle {
             timestamp,
             text: "".to_string(),
             html: "".to_string(),
+            requires_login: false,
         }
     }
 }
@@ -452,6 +504,45 @@ impl From<Box<dyn WebSiteInterface>> for WebSite {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_detect_login_required_japanese_markers() {
+        let cases = [
+            r#"<div class="paywall">この記事は会員限定です</div>"#,
+            r#"<p>ログインして続きを読む</p>"#,
+            r#"<span>無料会員登録すると全文を読めます</span>"#,
+            r#"<div>有料会員の方はログインしてください</div>"#,
+            r#"<a>続きを読むには会員登録が必要です</a>"#,
+        ];
+        for html in cases {
+            assert!(detect_login_required(html), "should detect login in: {}", html);
+        }
+    }
+
+    #[test]
+    fn test_detect_login_required_english_markers() {
+        let cases = [
+            r#"<div class="paywall">Sign in to read the full story</div>"#,
+            r#"<p>Subscribe to continue reading</p>"#,
+            r#"<div>This article is for MEMBERS ONLY</div>"#,
+            r#"<span>You hit the PAYWALL</span>"#,
+            r#"<p>Log in to continue</p>"#,
+        ];
+        for html in cases {
+            assert!(detect_login_required(html), "should detect login in: {}", html);
+        }
+    }
+
+    #[test]
+    fn test_detect_login_required_negative() {
+        let html = r#"<html><body><article>
+            <h1>新しいAIモデルが発表されました</h1>
+            <p>本日，研究チームは新しい大規模言語モデルを公開しました．
+            このモデルは従来比で精度が向上しています．</p>
+            <p>The team released the model under an open license today.</p>
+            </article></body></html>"#;
+        assert!(!detect_login_required(html));
+    }
 
     #[test]
     fn test_clean_html_removes_nav() {

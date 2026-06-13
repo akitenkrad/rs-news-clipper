@@ -74,7 +74,11 @@ impl WebSiteInterface for NikkeiXTech {
         let url = Url::parse(url).unwrap();
         let cookies = self.cookies.clone().unwrap_or_default();
         let response = self.request(url.as_str(), &cookies).await?;
-        let document = scraper::Html::parse_document(response.text().await?.as_str());
+        let raw = response.text().await?;
+        if crate::models::web_article::detect_login_required(&raw) {
+            return Err(AppError::LoginRequired);
+        }
+        let document = scraper::Html::parse_document(raw.as_str());
 
         let selectors = [
             "div.article_body",

@@ -41,6 +41,10 @@ pub enum AppError {
     // from openai-tools errors
     #[error("OpenAI Tools Error: {0}")]
     OpenAIToolError(#[from] openai_tools::common::OpenAIToolError),
+
+    // article behind a member login / paywall
+    #[error("Login required")]
+    LoginRequired,
 }
 
 fn app_error_to_status_code(error: &AppError) -> StatusCode {
@@ -56,6 +60,7 @@ fn app_error_to_status_code(error: &AppError) -> StatusCode {
         AppError::ScrapeError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         AppError::OpenAIToolError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         AppError::DateTimeParseError(_) => StatusCode::BAD_REQUEST,
+        AppError::LoginRequired => StatusCode::FORBIDDEN,
     }
 }
 

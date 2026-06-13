@@ -112,7 +112,11 @@ impl WebSiteInterface for Medium {
         let url = Url::parse(url)?;
         let cookies = self.login().await?;
         let response = self.request(url.as_str(), &cookies).await?;
-        let doc = scraper::Html::parse_document(response.text().await?.as_str());
+        let raw = response.text().await?;
+        if crate::models::web_article::detect_login_required(&raw) {
+            return Err(AppError::LoginRequired);
+        }
+        let doc = scraper::Html::parse_document(raw.as_str());
         let sel = match Selector::parse("article") {
             Ok(s) => s,
             Err(e) => {
