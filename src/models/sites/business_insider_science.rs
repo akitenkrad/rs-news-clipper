@@ -89,7 +89,7 @@ impl WebSiteInterface for BusinessInsiderScience {
                     self.site_name(),
                     self.site_url().to_string(),
                     title_text,
-                    "https://www.businessinsider.jp".to_string() + &url,
+                    format!("https://www.businessinsider.jp{}", url),
                     "".to_string(),
                     date.into(),
                 )

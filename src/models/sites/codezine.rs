@@ -85,7 +85,7 @@ impl WebSiteInterface for CodeZine {
                     self.site_name(),
                     self.site_url().to_string(),
                     tilte_text,
-                    "https://codezine.jp".to_string() + &url,
+                    format!("https://codezine.jp{}", url),
                     "".to_string(),
                     date.into(),
                 ));
