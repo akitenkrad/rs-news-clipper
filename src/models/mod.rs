@@ -13,6 +13,17 @@ pub async fn get_all_sites() -> AppResult<Vec<Box<dyn WebSiteInterface>>> {
         Box::new(ai_scholar::AIScholar::default()),
         Box::new(aismiley::AISmiley::default()),
         Box::new(aizine::AIZine::default()),
+        // --- 一次情報 (AI ラボ・研究機関の公式発信 / プレプリント) ---
+        Box::new(anthropic_news::AnthropicNews::default()),
+        Box::new(openai_news::OpenAINews::default()),
+        Box::new(deepmind_blog::DeepMindBlog::default()),
+        Box::new(google_research_blog::GoogleResearchBlog::default()),
+        Box::new(microsoft_research_blog::MicrosoftResearchBlog::default()),
+        Box::new(huggingface_blog::HuggingFaceBlog::default()),
+        // arXiv はカテゴリ単位で追加する．件数が多いカテゴリ (cs.CL 等) を
+        // 足す場合は下流の推薦件数への影響を確認すること．
+        Box::new(arxiv::Arxiv::new("cs.CR")),
+        // --- 一次情報ここまで ---
         Box::new(ascii::Ascii::default()),
         Box::new(aws_security_blog::AWSSecurityBlog::default()),
         Box::new(business_insider_science::BusinessInsiderScience::default()),
@@ -161,15 +172,32 @@ mod tests {
             let (html, text) = match site.parse_article(&article.article_url).await {
                 Ok(result) => result,
                 Err(e) => {
-                    event!(Level::WARN, "Failed to parse article from {}: {}", site_name, e);
+                    event!(
+                        Level::WARN,
+                        "Failed to parse article from {}: {}",
+                        site_name,
+                        e
+                    );
                     continue;
                 }
             };
 
             // 除外されるべき要素が含まれていないことを確認
-            assert!(!html.contains("<nav>"), "{}: nav should be removed", site_name);
-            assert!(!html.contains("<script>"), "{}: script should be removed", site_name);
-            assert!(!html.contains("<aside>"), "{}: aside should be removed", site_name);
+            assert!(
+                !html.contains("<nav>"),
+                "{}: nav should be removed",
+                site_name
+            );
+            assert!(
+                !html.contains("<script>"),
+                "{}: script should be removed",
+                site_name
+            );
+            assert!(
+                !html.contains("<aside>"),
+                "{}: aside should be removed",
+                site_name
+            );
 
             // コンテンツが存在することを確認
             assert!(!html.is_empty(), "{}: html should not be empty", site_name);
