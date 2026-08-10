@@ -70,3 +70,7 @@ pub trait WebSiteInterface: Send + Sync {
 2. Implement `WebSiteInterface` for your struct
 3. Add the module declaration in `src/models/sites/mod.rs`
 4. Add an instance to the vector in `get_all_sites()` in `src/models/mod.rs`
+5. Classify the site's domain in `src/models/provenance.rs` (`ORIGIN_DOMAINS` /
+   `REPORTING_DOMAINS` / `CGM_DOMAINS` / `AGGREGATOR_DOMAINS`).
+   `test_all_sites_have_known_provenance` fails until this is done.
+   Override `WebSiteInterface::provenance()` only when the domain table cannot express it.

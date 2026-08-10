@@ -1,3 +1,4 @@
+pub mod provenance;
 pub mod sites;
 pub mod web_article;
 pub mod web_site;
@@ -99,8 +100,31 @@ pub async fn get_all_sites() -> AppResult<Vec<Box<dyn WebSiteInterface>>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::models::provenance::Provenance;
     use crate::shared::logger::init_logger;
     use tracing::{Level, event};
+
+    /// 登録済みの全サイトが来歴クラスを持つことを保証する．
+    ///
+    /// 新しいサイトを `get_all_sites()` に追加したとき，そのドメインを
+    /// `provenance.rs` の分類表に載せ忘れるとこのテストが落ちる．
+    /// これが「サイト追加時に分類を強制する」仕組みである．
+    #[tokio::test]
+    async fn test_all_sites_have_known_provenance() {
+        let sites = get_all_sites().await.unwrap();
+        let unclassified: Vec<(String, String)> = sites
+            .iter()
+            .filter(|s| s.provenance() == Provenance::Unknown)
+            .map(|s| (s.site_name(), s.domain()))
+            .collect();
+
+        assert!(
+            unclassified.is_empty(),
+            "来歴クラスが未分類のサイトがある．src/models/provenance.rs の分類表に\n\
+             追加するか，該当サイトで provenance() をオーバーライドすること:\n{:#?}",
+            unclassified
+        );
+    }
 
     #[tokio::test]
     async fn test_all_sites() {

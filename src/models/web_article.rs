@@ -1,3 +1,4 @@
+use crate::models::provenance::{Provenance, provenance_of_domain};
 use crate::shared::errors::{AppError, AppResult};
 use chrono::{DateTime, Local};
 use derive_new::new;
@@ -129,9 +130,17 @@ const CONTENT_SELECTORS: &[&str] = &[
 
 /// 本文として不適切な要素のセレクタ
 const NON_CONTENT_SELECTORS: &[&str] = &[
-    "nav", "header", "footer", "aside",
-    ".sidebar", ".menu", ".navigation",
-    ".comment", ".comments", ".footer", ".header",
+    "nav",
+    "header",
+    "footer",
+    "aside",
+    ".sidebar",
+    ".menu",
+    ".navigation",
+    ".comment",
+    ".comments",
+    ".footer",
+    ".header",
 ];
 
 /// 要素のテキスト密度を計算（テキスト長 / HTML長）
@@ -190,16 +199,23 @@ fn calculate_content_score(elem: &scraper::ElementRef) -> f64 {
     // クラス名/ID による調整
     if let Some(class) = elem.value().attr("class") {
         let class_lower = class.to_lowercase();
-        if class_lower.contains("article") || class_lower.contains("content") || class_lower.contains("post") {
+        if class_lower.contains("article")
+            || class_lower.contains("content")
+            || class_lower.contains("post")
+        {
             score += 25.0;
         }
-        if class_lower.contains("sidebar") || class_lower.contains("comment") || class_lower.contains("nav") {
+        if class_lower.contains("sidebar")
+            || class_lower.contains("comment")
+            || class_lower.contains("nav")
+        {
             score -= 25.0;
         }
     }
     if let Some(id) = elem.value().attr("id") {
         let id_lower = id.to_lowercase();
-        if id_lower.contains("article") || id_lower.contains("content") || id_lower.contains("main") {
+        if id_lower.contains("article") || id_lower.contains("content") || id_lower.contains("main")
+        {
             score += 25.0;
         }
     }
@@ -378,6 +394,12 @@ pub struct WebArticle {
     pub html: String,
     #[serde(default)]
     pub requires_login: bool,
+    /// 記事の来歴クラス．`article_url` のホストから決まる（解決できなければ
+    /// サイト URL のホストにフォールバックする）．
+    ///
+    /// これは**事実の分類であって信頼度の点数ではない**．順位付けには使わない．
+    #[serde(default)]
+    pub provenance: Provenance,
 }
 
 impl WebArticle {
@@ -399,6 +421,13 @@ impl WebArticle {
             .and_then(|cap| cap.name("text").map(|m| m.as_str().to_string()))
             .unwrap_or(description);
         let description = html2md::rewrite_html(&description, false);
+        // 来歴は記事 URL のホストで決める．フィードの entry が外部ドメインを
+        // 指すサイト（まとめ・トピック系）でも記事側の実態に合わせるため．
+        // 記事 URL から決まらない場合のみサイト URL に落とす．
+        let provenance = match provenance_of_domain(&article_url) {
+            Provenance::Unknown => provenance_of_domain(&site_url),
+            p => p,
+        };
         Self {
             site: WebSite {
                 name: site_name.clone(),
@@ -412,6 +441,7 @@ impl WebArticle {
             text: "".to_string(),
             html: "".to_string(),
             requires_login: false,
+            provenance,
         }
     }
 }
@@ -455,6 +485,14 @@ pub trait WebSiteInterface: Send + Sync {
     }
     fn get_domain(&self, url: &str) -> AppResult<String> {
         Ok(Url::parse(url)?.domain().unwrap_or_default().to_string())
+    }
+    /// サイトの来歴クラス．既定では `domain()` を分類表に引く．
+    ///
+    /// 分類表で決まらないサイトだけがこのメソッドをオーバーライドすればよい．
+    /// 未分類のまま登録されることは `test_all_sites_have_known_provenance`
+    /// が防ぐ（新サイト追加時にテストが落ちる）．
+    fn provenance(&self) -> Provenance {
+        provenance_of_domain(&self.domain())
     }
     /// サイト固有の除外セレクタを返す（デフォルトは空）
     /// 各サイト実装でオーバーライドしてサイト特有の不要要素を指定できる
@@ -515,7 +553,11 @@ mod tests {
             r#"<a>続きを読むには会員登録が必要です</a>"#,
         ];
         for html in cases {
-            assert!(detect_login_required(html), "should detect login in: {}", html);
+            assert!(
+                detect_login_required(html),
+                "should detect login in: {}",
+                html
+            );
         }
     }
 
@@ -529,7 +571,11 @@ mod tests {
             r#"<p>Log in to continue</p>"#,
         ];
         for html in cases {
-            assert!(detect_login_required(html), "should detect login in: {}", html);
+            assert!(
+                detect_login_required(html),
+                "should detect login in: {}",
+                html
+            );
         }
     }
 
