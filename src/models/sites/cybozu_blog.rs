@@ -1,10 +1,8 @@
 use crate::models::web_article::{Cookie, Html, Text, WebArticle, WebSiteInterface};
+use crate::shared::errors::{AppError, AppResult};
 use chrono::DateTime;
 use feed_parser::parsers;
 use request::Url;
-use crate::shared::{
-    errors::{AppError, AppResult},
-};
 
 const URL: &str = "https://blog.cybozu.io/rss";
 
@@ -32,7 +30,6 @@ impl Default for CybozuBlog {
 
 #[async_trait::async_trait]
 impl WebSiteInterface for CybozuBlog {
-
     fn site_name(&self) -> String {
         self.site_name.clone()
     }
@@ -79,7 +76,8 @@ impl WebSiteInterface for CybozuBlog {
         let cookie = self.login().await?;
         let response = self.request(url.as_str(), &cookie).await?;
         let document = scraper::Html::parse_document(response.text().await?.as_str());
-        let selector = scraper::Selector::parse("#main article div.entry-inner div.entry-content").unwrap();
+        let selector =
+            scraper::Selector::parse("#main article div.entry-inner div.entry-content").unwrap();
         match document.select(&selector).next() {
             Some(elem) => {
                 let raw_html = elem.html().to_string();

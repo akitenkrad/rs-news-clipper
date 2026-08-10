@@ -49,7 +49,10 @@ impl WebSiteInterface for AINews {
         let feeds = match parsers::atom::parse(response.text().await?.as_str()) {
             Ok(feeds) => feeds,
             Err(e) => {
-                return Err(AppError::ScrapeError(format!("Failed to parse Atom feed: {}", e)));
+                return Err(AppError::ScrapeError(format!(
+                    "Failed to parse Atom feed: {}",
+                    e
+                )));
             }
         };
         let articles = feeds

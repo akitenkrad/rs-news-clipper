@@ -1,8 +1,8 @@
 use crate::models::web_article::{Cookie, Html, Text, WebArticle, WebSiteInterface};
+use crate::shared::errors::{AppError, AppResult};
 use chrono::DateTime;
 use feed_parser::parsers;
 use request::Url;
-use crate::shared::errors::{AppError, AppResult};
 
 const URL: &str = "https://tech.gunosy.io/feed";
 
@@ -30,7 +30,6 @@ impl Default for GunosyTechBlog {
 
 #[async_trait::async_trait]
 impl WebSiteInterface for GunosyTechBlog {
-
     fn site_name(&self) -> String {
         self.site_name.clone()
     }

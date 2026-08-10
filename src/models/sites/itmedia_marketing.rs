@@ -1,10 +1,8 @@
 use crate::models::web_article::{Cookie, Html, Text, WebArticle, WebSiteInterface};
+use crate::shared::errors::{AppError, AppResult};
 use chrono::DateTime;
 use feed_parser::parsers;
 use request::Url;
-use crate::shared::{
-    errors::{AppError, AppResult},
-};
 
 const URL: &str = "https://rss.itmedia.co.jp/rss/2.0/marketing.xml";
 
@@ -31,7 +29,6 @@ impl Default for ITMediaMarketing {
 
 #[async_trait::async_trait]
 impl WebSiteInterface for ITMediaMarketing {
-
     fn site_name(&self) -> String {
         self.site_name.clone()
     }
@@ -45,10 +42,14 @@ impl WebSiteInterface for ITMediaMarketing {
     /// ITmedia固有の除外セレクタ
     fn site_specific_exclude_selectors(&self) -> Vec<&'static str> {
         vec![
-            ".premium-info", ".premium-banner",
-            ".article-rating", ".feedback",
-            ".newsletter", ".member-banner",
-            ".read-more", ".colBoxPremium",
+            ".premium-info",
+            ".premium-banner",
+            ".article-rating",
+            ".feedback",
+            ".newsletter",
+            ".member-banner",
+            ".read-more",
+            ".colBoxPremium",
         ]
     }
 
@@ -61,7 +62,10 @@ impl WebSiteInterface for ITMediaMarketing {
         let feeds = match parsers::rss2::parse(response.text().await?.as_str()) {
             Ok(feeds) => feeds,
             Err(e) => {
-                return Err(AppError::ScrapeError(format!("Failed to parse RSS feed: {}", e)));
+                return Err(AppError::ScrapeError(format!(
+                    "Failed to parse RSS feed: {}",
+                    e
+                )));
             }
         };
         let articles = feeds

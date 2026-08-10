@@ -1,11 +1,9 @@
 use crate::models::web_article::{Cookie, Html, Text, WebArticle, WebSiteInterface};
+use crate::shared::errors::{AppError, AppResult};
 use chrono::DateTime;
 use feed_parser::parsers;
 use request::Url;
 use scraper::Selector;
-use crate::shared::{
-    errors::{AppError, AppResult},
-};
 
 const URL: &str = "https://techlife.cookpad.com/rss";
 
@@ -33,7 +31,6 @@ impl Default for CookpadTechBlog {
 
 #[async_trait::async_trait]
 impl WebSiteInterface for CookpadTechBlog {
-
     fn site_name(&self) -> String {
         self.site_name.clone()
     }
@@ -53,7 +50,10 @@ impl WebSiteInterface for CookpadTechBlog {
         let feeds = match parsers::atom::parse(response.text().await?.as_str()) {
             Ok(feeds) => feeds,
             Err(e) => {
-                return Err(AppError::ScrapeError(format!("Failed to parse Atom feed: {}", e)));
+                return Err(AppError::ScrapeError(format!(
+                    "Failed to parse Atom feed: {}",
+                    e
+                )));
             }
         };
         let articles = feeds

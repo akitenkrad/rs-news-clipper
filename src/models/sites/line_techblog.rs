@@ -1,11 +1,9 @@
 use crate::models::web_article::{Cookie, Html, Text, WebArticle, WebSiteInterface};
+use crate::shared::errors::{AppError, AppResult};
 use chrono::DateTime;
 use feed_parser::parsers;
 use request::Url;
 use scraper::Selector;
-use crate::shared::{
-    errors::{AppError, AppResult},
-};
 
 const URL: &str = "https://techblog.lycorp.co.jp/ja/feed/index.xml";
 
@@ -32,7 +30,6 @@ impl Default for LineTechBlog {
 
 #[async_trait::async_trait]
 impl WebSiteInterface for LineTechBlog {
-
     fn site_name(&self) -> String {
         self.site_name.clone()
     }

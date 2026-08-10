@@ -1,7 +1,7 @@
 use crate::models::web_article::{Cookie, Html, Text, WebArticle, WebSiteInterface};
+use crate::shared::errors::{AppError, AppResult};
 use request::Url;
 use scraper::Selector;
-use crate::shared::errors::{AppError, AppResult};
 
 const URL: &str = "https://medium.com/tag/{}/archive";
 
@@ -33,7 +33,6 @@ impl Default for Medium {
 
 #[async_trait::async_trait]
 impl WebSiteInterface for Medium {
-
     fn site_name(&self) -> String {
         self.site_name.clone()
     }
@@ -78,8 +77,17 @@ impl WebSiteInterface for Medium {
 
             match article.select(&date_sel).next() {
                 Some(x) => {
-                    let _text = x.text().collect::<Vec<_>>().join("").trim().to_string().to_lowercase();
-                    if !(_text.contains("just now") || _text.contains("h ago") || _text.contains("m ago")) {
+                    let _text = x
+                        .text()
+                        .collect::<Vec<_>>()
+                        .join("")
+                        .trim()
+                        .to_string()
+                        .to_lowercase();
+                    if !(_text.contains("just now")
+                        || _text.contains("h ago")
+                        || _text.contains("m ago"))
+                    {
                         println!("{} is not recent", _text);
                         continue;
                     }
@@ -120,7 +128,10 @@ impl WebSiteInterface for Medium {
         let sel = match Selector::parse("article") {
             Ok(s) => s,
             Err(e) => {
-                return Err(AppError::ScrapeError(format!("Failed to parse selector: {}", e)));
+                return Err(AppError::ScrapeError(format!(
+                    "Failed to parse selector: {}",
+                    e
+                )));
             }
         };
         let (html, text) = match doc.select(&sel).next() {

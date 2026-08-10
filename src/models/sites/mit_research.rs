@@ -1,7 +1,5 @@
 use crate::models::web_article::{Cookie, Html, Text, WebArticle, WebSiteInterface};
-use crate::shared::{
-    errors::{AppError, AppResult},
-};
+use crate::shared::errors::{AppError, AppResult};
 use chrono::DateTime;
 use feed_parser::parsers;
 use request::Url;
@@ -31,7 +29,6 @@ impl Default for MITResearch {
 
 #[async_trait::async_trait]
 impl WebSiteInterface for MITResearch {
-
     fn site_name(&self) -> String {
         self.site_name.clone()
     }

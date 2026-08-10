@@ -1,10 +1,8 @@
 use crate::models::web_article::{Cookie, Html, Text, WebArticle, WebSiteInterface};
+use crate::shared::errors::{AppError, AppResult};
 use chrono::DateTime;
 use feed_parser::parsers;
 use request::Url;
-use crate::shared::{
-    errors::{AppError, AppResult},
-};
 
 const URL: &str = "https://www.ipa.go.jp/security/rss/alert.rdf";
 
@@ -31,7 +29,6 @@ impl Default for IPASecurityCenter {
 
 #[async_trait::async_trait]
 impl WebSiteInterface for IPASecurityCenter {
-
     fn site_name(&self) -> String {
         self.site_name.clone()
     }
@@ -51,7 +48,10 @@ impl WebSiteInterface for IPASecurityCenter {
         let feeds = match parsers::rss1::parse(response.text().await?.as_str()) {
             Ok(feeds) => feeds,
             Err(e) => {
-                return Err(AppError::ScrapeError(format!("Failed to parse RSS feed: {}", e)));
+                return Err(AppError::ScrapeError(format!(
+                    "Failed to parse RSS feed: {}",
+                    e
+                )));
             }
         };
         let articles = feeds
@@ -78,8 +78,10 @@ impl WebSiteInterface for IPASecurityCenter {
         let cookies = self.login().await?;
         let response = self.request(url.as_str(), &cookies).await?;
         let document = scraper::Html::parse_document(response.text().await?.as_str());
-        let selector =
-            scraper::Selector::parse("div.news-detail main h1.ttl,h2.ttl,p.article-txt,span.list__item__txt").unwrap();
+        let selector = scraper::Selector::parse(
+            "div.news-detail main h1.ttl,h2.ttl,p.article-txt,span.list__item__txt",
+        )
+        .unwrap();
         let article = match document.select(&selector).next() {
             Some(article) => article,
             None => {

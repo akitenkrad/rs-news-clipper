@@ -1,8 +1,8 @@
 use crate::models::web_article::{Cookie, Html, Text, WebArticle, WebSiteInterface};
+use crate::shared::errors::{AppError, AppResult};
 use chrono::DateTime;
 use feed_parser::parsers;
 use request::Url;
-use crate::shared::errors::{AppError, AppResult};
 
 const URL: &str = "http://feeds.trendmicro.com/jp/NewestMalware";
 
@@ -29,7 +29,6 @@ impl Default for TrendMicroSecurityNews {
 
 #[async_trait::async_trait]
 impl WebSiteInterface for TrendMicroSecurityNews {
-
     fn site_name(&self) -> String {
         self.site_name.clone()
     }
@@ -79,7 +78,12 @@ impl WebSiteInterface for TrendMicroSecurityNews {
         let selector = scraper::Selector::parse("section.TEArticle div.articleContainer").unwrap();
         let article = match document.select(&selector).next() {
             Some(article) => article,
-            None => return Err(AppError::ScrapeError(format!("Failed to find article: {:?}", selector))),
+            None => {
+                return Err(AppError::ScrapeError(format!(
+                    "Failed to find article: {:?}",
+                    selector
+                )));
+            }
         };
         let raw_html = article.html().to_string();
         let html = self.clean_content(&raw_html);

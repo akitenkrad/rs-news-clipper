@@ -1,10 +1,8 @@
 use crate::models::web_article::{Cookie, Html, Text, WebArticle, WebSiteInterface};
+use crate::shared::errors::{AppError, AppResult};
 use chrono::DateTime;
 use feed_parser::parsers;
 use request::Url;
-use crate::shared::{
-    errors::{AppError, AppResult},
-};
 
 const URL: &str = "https://engineering.mercari.com/blog/feed.xml";
 
@@ -31,7 +29,6 @@ impl Default for MercariEngineeringBlog {
 
 #[async_trait::async_trait]
 impl WebSiteInterface for MercariEngineeringBlog {
-
     fn site_name(&self) -> String {
         self.site_name.clone()
     }

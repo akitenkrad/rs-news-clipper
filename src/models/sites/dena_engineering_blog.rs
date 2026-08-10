@@ -1,7 +1,5 @@
 use crate::models::web_article::{Cookie, Html, Text, WebArticle, WebSiteInterface};
-use crate::shared::{
-    errors::{AppError, AppResult},
-};
+use crate::shared::errors::{AppError, AppResult};
 use chrono::DateTime;
 use feed_parser::parsers;
 use request::Url;

@@ -1,8 +1,8 @@
 use crate::models::web_article::{Cookie, Html, Text, WebArticle, WebSiteInterface};
+use crate::shared::errors::{AppError, AppResult};
 use chrono::DateTime;
 use feed_parser::parsers;
 use request::Url;
-use crate::shared::errors::{AppError, AppResult};
 
 const URL: &str = "https://buildersbox.corp-sansan.com/feed";
 
@@ -30,7 +30,6 @@ impl Default for Sansan {
 
 #[async_trait::async_trait]
 impl WebSiteInterface for Sansan {
-
     fn site_name(&self) -> String {
         self.site_name.clone()
     }
@@ -78,7 +77,8 @@ impl WebSiteInterface for Sansan {
         let cookies = self.login().await?;
         let response = self.request(url.as_str(), &cookies).await?;
         let document = scraper::Html::parse_document(response.text().await?.as_str());
-        let selector = scraper::Selector::parse("#main article div.entry-inner div.entry-content").unwrap();
+        let selector =
+            scraper::Selector::parse("#main article div.entry-inner div.entry-content").unwrap();
         let article = match document.select(&selector).next() {
             Some(article) => article,
             None => {

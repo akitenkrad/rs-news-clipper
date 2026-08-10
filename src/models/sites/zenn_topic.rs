@@ -1,10 +1,8 @@
 use crate::models::web_article::{Cookie, Html, Text, WebArticle, WebSiteInterface};
+use crate::shared::errors::{AppError, AppResult};
 use chrono::DateTime;
 use feed_parser::parsers;
 use request::Url;
-use crate::shared::{
-    errors::{AppError, AppResult},
-};
 
 const URL: &str = "https://zenn.dev/topics/{}/feed";
 
@@ -36,7 +34,6 @@ impl Default for ZennTopic {
 
 #[async_trait::async_trait]
 impl WebSiteInterface for ZennTopic {
-
     fn site_name(&self) -> String {
         self.site_name.clone()
     }
@@ -50,8 +47,10 @@ impl WebSiteInterface for ZennTopic {
     /// Zenn固有の除外セレクタ
     fn site_specific_exclude_selectors(&self) -> Vec<&'static str> {
         vec![
-            ".LikeButton", ".BookmarkButton",
-            ".AuthorProfile", ".SupportButton",
+            ".LikeButton",
+            ".BookmarkButton",
+            ".AuthorProfile",
+            ".SupportButton",
         ]
     }
 

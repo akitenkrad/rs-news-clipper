@@ -1,10 +1,8 @@
 use crate::models::web_article::{Cookie, Html, Text, WebArticle, WebSiteInterface};
+use crate::shared::errors::{AppError, AppResult};
 use chrono::{DateTime, Local};
 use request::Url;
 use scraper::Selector;
-use crate::shared::{
-    errors::{AppError, AppResult},
-};
 
 const URL: &str = "https://codezine.jp/news";
 
@@ -32,7 +30,6 @@ impl Default for CodeZine {
 
 #[async_trait::async_trait]
 impl WebSiteInterface for CodeZine {
-
     fn site_name(&self) -> String {
         self.site_name.clone()
     }
@@ -110,9 +107,7 @@ impl WebSiteInterface for CodeZine {
                 let text = html2md::rewrite_html(&html, false);
                 Ok((self.trim_text(&html), self.trim_text(&text)))
             }
-            None => {
-                Err(AppError::ScrapeError("Failed to parse article text".into()))
-            }
+            None => Err(AppError::ScrapeError("Failed to parse article text".into())),
         }
     }
 }

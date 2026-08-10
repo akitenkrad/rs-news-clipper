@@ -1,10 +1,8 @@
 use crate::models::web_article::{Cookie, Html, Text, WebArticle, WebSiteInterface};
+use crate::shared::errors::{AppError, AppResult};
 use chrono::DateTime;
 use feed_parser::parsers;
 use request::Url;
-use crate::shared::{
-    errors::{AppError, AppResult},
-};
 
 const URL: &str = "https://labs.gree.jp/blog/feed";
 
@@ -32,7 +30,6 @@ impl Default for GreeTechBlog {
 
 #[async_trait::async_trait]
 impl WebSiteInterface for GreeTechBlog {
-
     fn site_name(&self) -> String {
         self.site_name.clone()
     }
@@ -84,7 +81,8 @@ impl WebSiteInterface for GreeTechBlog {
             Some(article) => article,
             None => {
                 return Err(AppError::ScrapeError(
-                    "Failed to find article content: div.site-body article div.entry-body".to_string(),
+                    "Failed to find article content: div.site-body article div.entry-body"
+                        .to_string(),
                 ));
             }
         };

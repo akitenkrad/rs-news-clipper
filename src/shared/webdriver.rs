@@ -7,8 +7,7 @@ use tokio::process::Child;
 
 type BoxError = Box<dyn Error + Send + Sync>;
 
-const VERSIONS_URL: &str =
-    "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json";
+const VERSIONS_URL: &str = "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json";
 
 pub struct ManagedChromeDriver {
     process: Option<Child>,

@@ -1,8 +1,8 @@
 use crate::models::web_article::{Cookie, Html, Text, WebArticle, WebSiteInterface};
+use crate::shared::errors::{AppError, AppResult};
 use chrono::DateTime;
 use request::Url;
 use scraper::Selector;
-use crate::shared::errors::{AppError, AppResult};
 
 const URL: &str = "https://stockmark-tech.hatenablog.com/";
 
@@ -29,7 +29,6 @@ impl Default for StockmarkTechBlog {
 
 #[async_trait::async_trait]
 impl WebSiteInterface for StockmarkTechBlog {
-
     fn site_name(&self) -> String {
         self.site_name.clone()
     }
@@ -53,10 +52,12 @@ impl WebSiteInterface for StockmarkTechBlog {
         let post_selector = Selector::parse("#main").unwrap();
         let posts = doc.select(&post_selector);
         for post in posts {
-            let desc_selector = Selector::parse("div.archive-entry-body p.entry-description").unwrap();
+            let desc_selector =
+                Selector::parse("div.archive-entry-body p.entry-description").unwrap();
             let title_selector = Selector::parse("div.archive-entry-header").unwrap();
             let url_selector = Selector::parse("div.archive-entry-header h1 a").unwrap();
-            let date_selector = Selector::parse("div.archive-entry-header div.archive-date").unwrap();
+            let date_selector =
+                Selector::parse("div.archive-entry-header div.archive-date").unwrap();
 
             let title = match post.select(&title_selector).next() {
                 Some(elem) => elem.text().collect(),
