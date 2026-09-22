@@ -164,6 +164,15 @@ const REPORTING_DOMAINS: &[&str] = &[
     // 論文・技術動向の解説メディア（独自の書き起こしを伴う）
     "ai-scholar.tech",
     "otafuku-lab.co",
+    // 国内メディアが出典として引く英語圏の報道．本文が取得できる媒体だけ
+    // 載せる．ペイウォール媒体（wsj.com / ft.com / bloomberg.com /
+    // nytimes.com / theinformation.com）は本文の無いスタブが判定に渡り
+    // 接地度を不当に下げるので，スタブ判定が入るまで登録しない（MYTASK-3319）．
+    "theverge.com",
+    "arstechnica.com",
+    "inc.com",
+    "cnbc.com",
+    "reuters.com",
 ];
 
 /// 投稿プラットフォーム．企業技術ブログと個人記事が同居する．
@@ -331,6 +340,22 @@ mod tests {
         assert_eq!(provenance_of_domain("gigazine.net"), Provenance::Reporting);
         assert_eq!(provenance_of_domain("zenn.dev"), Provenance::Cgm);
         assert_eq!(provenance_of_domain("prtimes.jp"), Provenance::Aggregator);
+    }
+
+    #[test]
+    fn test_english_reporting_media_are_reporting() {
+        // 国内メディアの出典として頻出する英語圏の報道（MYTASK-3319）
+        for host in [
+            "www.theverge.com",
+            "arstechnica.com",
+            "www.inc.com",
+            "www.cnbc.com",
+            "www.reuters.com",
+        ] {
+            assert_eq!(provenance_of_domain(host), Provenance::Reporting, "{host}");
+        }
+        // ペイウォール媒体は意図して未登録のまま
+        assert_eq!(provenance_of_domain("www.wsj.com"), Provenance::Unknown);
     }
 
     #[test]
