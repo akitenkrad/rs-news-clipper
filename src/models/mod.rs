@@ -11,7 +11,6 @@ pub async fn get_all_sites() -> AppResult<Vec<Box<dyn WebSiteInterface>>> {
         Box::new(ai_db::AIDB::default()),
         Box::new(ai_it_now::AIItNow::default()),
         Box::new(ai_news::AINews::default()),
-        Box::new(ai_scholar::AIScholar::default()),
         Box::new(aismiley::AISmiley::default()),
         Box::new(aizine::AIZine::default()),
         // --- 一次情報 (AI ラボ・研究機関の公式発信 / プレプリント) ---

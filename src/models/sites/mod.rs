@@ -1,7 +1,6 @@
 pub mod ai_db;
 pub mod ai_it_now;
 pub mod ai_news;
-pub mod ai_scholar;
 pub mod aismiley;
 pub mod aizine;
 pub mod anthropic_news;

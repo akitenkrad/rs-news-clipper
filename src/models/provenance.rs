@@ -162,7 +162,6 @@ const REPORTING_DOMAINS: &[&str] = &[
     "blackhatnews.tokyo",
     "huffingtonpost.jp",
     // 論文・技術動向の解説メディア（独自の書き起こしを伴う）
-    "ai-scholar.tech",
     "otafuku-lab.co",
     // 国内メディアが出典として引く英語圏の報道．本文が取得できる媒体だけ
     // 載せる．ペイウォール媒体（wsj.com / ft.com / bloomberg.com /
