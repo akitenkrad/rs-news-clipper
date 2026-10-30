@@ -9,6 +9,21 @@ type BoxError = Box<dyn Error + Send + Sync>;
 
 const VERSIONS_URL: &str = "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json";
 
+#[derive(Debug, Clone)]
+pub struct LaunchOptions {
+    pub headless: bool,
+    pub user_data_dir: Option<PathBuf>,
+}
+
+impl Default for LaunchOptions {
+    fn default() -> Self {
+        Self {
+            headless: true,
+            user_data_dir: None,
+        }
+    }
+}
+
 pub struct ManagedChromeDriver {
     process: Option<Child>,
     driver: WebDriver,
@@ -16,6 +31,10 @@ pub struct ManagedChromeDriver {
 
 impl ManagedChromeDriver {
     pub async fn launch() -> Result<Self, BoxError> {
+        Self::launch_with(LaunchOptions::default()).await
+    }
+
+    pub async fn launch_with(options: LaunchOptions) -> Result<Self, BoxError> {
         let (platform, binary_name) = detect_platform()?;
 
         let client = Client::new();
@@ -41,9 +60,7 @@ impl ManagedChromeDriver {
             .join("news_clipper")
             .join("chromedriver")
             .join(&version);
-        let binary_path = base_dir
-            .join(format!("chromedriver-{}", platform))
-            .join(binary_name);
+        let binary_path = base_dir.join(format!("chromedriver-{}", platform)).join(binary_name);
 
         if !binary_path.exists() {
             download_and_extract(&client, &download_url, &base_dir, &binary_path).await?;
@@ -64,7 +81,12 @@ impl ManagedChromeDriver {
         }
 
         let mut caps = DesiredCapabilities::chrome();
-        caps.add_arg("--headless=new")?;
+        if options.headless {
+            caps.add_arg("--headless=new")?;
+        }
+        if let Some(user_data_dir) = options.user_data_dir {
+            caps.add_arg(&format!("--user-data-dir={}", user_data_dir.display()))?;
+        }
         // Bot 検出回避: navigator.webdriver=true を抑止し，本物の Chrome の UA を装う．
         caps.add_arg("--disable-blink-features=AutomationControlled")?;
         caps.add_arg(
@@ -137,12 +159,7 @@ fn detect_platform() -> Result<(&'static str, &'static str), BoxError> {
     }
 }
 
-async fn download_and_extract(
-    client: &Client,
-    url: &str,
-    base_dir: &PathBuf,
-    binary_path: &PathBuf,
-) -> Result<(), BoxError> {
+async fn download_and_extract(client: &Client, url: &str, base_dir: &PathBuf, binary_path: &PathBuf) -> Result<(), BoxError> {
     std::fs::create_dir_all(base_dir)?;
     let zip_path = base_dir.join("chromedriver.zip");
 
@@ -164,11 +181,7 @@ async fn download_and_extract(
     }
 
     if !binary_path.exists() {
-        return Err(format!(
-            "chromedriver binary not found after extraction: {:?}",
-            binary_path
-        )
-        .into());
+        return Err(format!("chromedriver binary not found after extraction: {:?}", binary_path).into());
     }
     Ok(())
 }

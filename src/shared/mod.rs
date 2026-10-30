@@ -1,6 +1,7 @@
 pub mod env;
 pub mod errors;
 pub mod id;
+pub mod keychain;
 pub mod logger;
 pub mod utils;
 pub mod webdriver;
