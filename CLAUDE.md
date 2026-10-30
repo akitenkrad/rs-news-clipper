@@ -47,7 +47,7 @@ pub trait WebSiteInterface: Send + Sync {
 
 ### Module Layout
 
-- `src/models/sites/` — Individual site implementations (69 modules)
+- `src/models/sites/` — Individual site implementations (68 modules)
 - `src/models/web_article.rs` — `WebArticle`, `WebArticleProperty` structs, `WebSiteInterface` trait
 - `src/models/web_site.rs` — `WebSite` struct
 - `src/shared/errors.rs` — `AppError` enum, `AppResult<T>` type alias
