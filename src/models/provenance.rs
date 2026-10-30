@@ -128,6 +128,8 @@ const REPORTING_DOMAINS: &[&str] = &[
     "xtech.nikkei.com",
     "security-next.com",
     "techno-edge.net",
+    "piyolog.hatenadiary.jp",
+    "therecord.media",
     "japan.cnet.com",
     "cnet.com",
     "japan.zdnet.com",

@@ -65,11 +65,13 @@ pub async fn get_all_sites() -> AppResult<Vec<Box<dyn WebSiteInterface>>> {
         Box::new(moneyforward_developers_blog::MoneyForwardDevelopersBlog::default()),
         Box::new(motex::MoTex::default()),
         Box::new(nikkei_xtech::NikkeiXTech::default()),
+        Box::new(piyolog::Piyolog::default()),
         Box::new(qiita_blog::QiitaBlog::default()),
         Box::new(rust_blog::RustBlog::default()),
         Box::new(sakura_internet_techblog::SakuraInternetTechBlog::default()),
         Box::new(sansan::Sansan::default()),
         Box::new(sbbit::Sbbit::default()),
+        Box::new(scan_net_security::ScanNetSecurity::default()),
         Box::new(security_next::SecurityNext::default()),
         Box::new(sophos_news::SophosNews::default()),
         Box::new(stockmark_news::StockmarkNews::default()),
@@ -77,6 +79,7 @@ pub async fn get_all_sites() -> AppResult<Vec<Box<dyn WebSiteInterface>>> {
         Box::new(supership::Supership::default()),
         Box::new(tech_crunch::TechCrunch::default()),
         Box::new(techno_edge::TechnoEdge::default()),
+        Box::new(the_record::TheRecord::default()),
         Box::new(tokyo_univ_engineering::TokyoUniversityEngineering::default()),
         Box::new(trend_micro_security_news::TrendMicroSecurityNews::default()),
         Box::new(trend_micro_security_advisories::TrendMicroSecurityAdvisories::default()),
@@ -126,6 +129,24 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_all_sites_include_security_incident_sources() {
+        let site_names: Vec<String> = get_all_sites()
+            .await
+            .unwrap()
+            .iter()
+            .map(|site| site.site_name())
+            .collect();
+
+        for expected in ["piyolog", "ScanNetSecurity", "The Record"] {
+            assert!(
+                site_names.iter().any(|name| name == expected),
+                "missing security incident source: {expected}"
+            );
+        }
+    }
+
+    #[tokio::test]
+    #[ignore = "requires unrestricted external network access"]
     async fn test_all_sites() {
         init_logger("DEBUG").expect("Failed to initialize logger");
 
@@ -160,6 +181,7 @@ mod tests {
 
     /// parse_article の統合テスト：実際のサイトから記事を取得してパースする
     #[tokio::test]
+    #[ignore = "requires unrestricted external network access"]
     async fn test_parse_article_clean_content() {
         init_logger("INFO").expect("Failed to initialize logger");
 
@@ -234,5 +256,55 @@ mod tests {
                 text.len()
             );
         }
+    }
+
+    /// セキュリティインシデント報道元のフィードと本文を実サイトで検証する．
+    #[tokio::test]
+    #[ignore = "requires unrestricted external network access"]
+    async fn test_security_incident_sites_live() {
+        let test_sites: Vec<Box<dyn WebSiteInterface>> = vec![
+            Box::new(piyolog::Piyolog::default()),
+            Box::new(scan_net_security::ScanNetSecurity::default()),
+            Box::new(the_record::TheRecord::default()),
+        ];
+        let mut failures = Vec::new();
+
+        for site in test_sites {
+            let site_name = site.site_name();
+            let result = tokio::spawn(async move {
+                let mut site = site;
+                let articles = site.get_articles().await?;
+                if articles.is_empty() {
+                    return Err(crate::shared::errors::AppError::ScrapeError(
+                        "No articles found".to_string(),
+                    ));
+                }
+
+                let (_, text) = site.parse_article(&articles[0].article_url).await?;
+                if text.is_empty() {
+                    return Err(crate::shared::errors::AppError::ScrapeError(
+                        "Article text is empty".to_string(),
+                    ));
+                }
+
+                let preview: String = text.chars().take(50).collect();
+                Ok::<_, crate::shared::errors::AppError>((articles.len(), preview))
+            })
+            .await;
+
+            match result {
+                Ok(Ok((count, preview))) => {
+                    println!("{site_name}: {count} articles; {preview}");
+                }
+                Ok(Err(error)) => failures.push(format!("{site_name}: {error}")),
+                Err(error) => failures.push(format!("{site_name}: task failed: {error}")),
+            }
+        }
+
+        assert!(
+            failures.is_empty(),
+            "security incident site checks failed:\n{}",
+            failures.join("\n")
+        );
     }
 }

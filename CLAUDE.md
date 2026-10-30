@@ -7,8 +7,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 cargo build                    # Debug build
 cargo build --release          # Optimized build
-cargo test                     # Run all tests
-cargo test test_all_sites      # Run the main integration test
+cargo test                     # Run unit tests (network tests are ignored)
+cargo test test_all_sites -- --ignored --nocapture  # Run the network integration test
 cargo test -- --nocapture      # Show stdout during tests
 cargo fmt                      # Format code
 cargo clippy                   # Lint
@@ -47,7 +47,7 @@ pub trait WebSiteInterface: Send + Sync {
 
 ### Module Layout
 
-- `src/models/sites/` — Individual site implementations (58 modules)
+- `src/models/sites/` — Individual site implementations (69 modules)
 - `src/models/web_article.rs` — `WebArticle`, `WebArticleProperty` structs, `WebSiteInterface` trait
 - `src/models/web_site.rs` — `WebSite` struct
 - `src/shared/errors.rs` — `AppError` enum, `AppResult<T>` type alias
