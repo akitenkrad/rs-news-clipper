@@ -1,10 +1,11 @@
+use crate::models::provenance::Provenance;
 use crate::models::web_article::{Cookie, Html, Text, WebArticle, WebSiteInterface};
 use crate::shared::errors::{AppError, AppResult};
 use chrono::DateTime;
 use feed_parser::parsers;
 use request::Url;
 
-const URL: &str = "https://eset-info.canon-its.jp/rss/data_format=xml&xml_media_nm=malware";
+const URL: &str = "https://www.jpcert.or.jp/rss/jpcert.rdf";
 
 #[derive(Debug, Clone)]
 pub struct JPCert {
@@ -18,6 +19,30 @@ impl JPCert {
             site_name: "JPCERT".to_string(),
             url: Url::parse(URL).unwrap(),
         }
+    }
+
+    fn parse_feed(&self, raw: &str) -> AppResult<Vec<WebArticle>> {
+        let feeds = parsers::rss1::parse(raw)
+            .map_err(|e| AppError::ScrapeError(format!("Failed to parse RSS feed: {e}")))?;
+
+        feeds
+            .into_iter()
+            .map(|feed| {
+                let date = feed
+                    .date
+                    .ok_or_else(|| AppError::ScrapeError("Missing date".into()))?;
+                let timestamp = DateTime::parse_from_rfc3339(&date)
+                    .or_else(|_| DateTime::parse_from_str(&date, "%Y-%m-%dT%H:%M%:z"))?;
+                Ok(WebArticle::new(
+                    self.site_name(),
+                    self.site_url().to_string(),
+                    feed.title,
+                    feed.link,
+                    feed.description.unwrap_or_default(),
+                    timestamp.into(),
+                ))
+            })
+            .collect()
     }
 }
 
@@ -39,37 +64,17 @@ impl WebSiteInterface for JPCert {
         self.url.domain().unwrap().to_string()
     }
 
+    fn provenance(&self) -> Provenance {
+        Provenance::Origin
+    }
+
     async fn login(&mut self) -> AppResult<Cookie> {
         Ok(Cookie::default())
     }
     async fn get_articles(&mut self) -> AppResult<Vec<WebArticle>> {
         let cookies = self.login().await?;
         let response = self.request(self.url.as_str(), &cookies).await?;
-        let feeds = match parsers::rss2::parse(response.text().await?.as_str()) {
-            Ok(feeds) => feeds,
-            Err(e) => {
-                println!("Error parsing RSS feed: {}", e);
-                return Err(AppError::ScrapeError("Failed to parse RSS feed".into()));
-            }
-        };
-        let articles = feeds
-            .iter()
-            .map(|feed| -> AppResult<WebArticle> {
-                let publish_date = feed
-                    .publish_date
-                    .clone()
-                    .ok_or_else(|| AppError::ScrapeError("Missing publish_date".into()))?;
-                Ok(WebArticle::new(
-                    self.site_name(),
-                    self.site_url().to_string(),
-                    feed.title.clone(),
-                    feed.link.clone(),
-                    feed.description.clone().unwrap_or("".to_string()),
-                    DateTime::parse_from_rfc2822(&publish_date)?.into(),
-                ))
-            })
-            .collect::<AppResult<Vec<WebArticle>>>()?;
-        Ok(articles)
+        self.parse_feed(&response.text().await?)
     }
     async fn parse_article(&mut self, url: &str) -> AppResult<(Html, Text)> {
         let url = Url::parse(url).unwrap();
@@ -90,5 +95,29 @@ impl WebSiteInterface for JPCert {
         let html = self.clean_content(&raw_html);
         let text = html2md::rewrite_html(&html, false);
         Ok((self.trim_text(&html), self.trim_text(&text)))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parses_jpcert_rdf_fixture() {
+        let site = JPCert::default();
+        let fixture = include_str!("../../../tests/fixtures/jpcert.rdf");
+        let articles = site.parse_feed(fixture).unwrap();
+
+        assert!(!articles.is_empty());
+        assert!(articles.iter().all(|article| !article.title.is_empty()));
+        assert!(
+            articles
+                .iter()
+                .all(|article| !article.article_url.is_empty())
+        );
+        assert_eq!(
+            site.site_url().as_str(),
+            "https://www.jpcert.or.jp/rss/jpcert.rdf"
+        );
     }
 }
