@@ -26,6 +26,7 @@ pub async fn get_all_sites() -> AppResult<Vec<Box<dyn WebSiteInterface>>> {
         // --- 一次情報ここまで ---
         Box::new(ascii::Ascii::default()),
         Box::new(aws_security_blog::AWSSecurityBlog::default()),
+        Box::new(bleepingcomputer::BleepingComputer::default()),
         Box::new(business_insider_science::BusinessInsiderScience::default()),
         Box::new(business_insider_technology::BusinessInsiderTechnology::default()),
         Box::new(canon_malware_center::CanonMalwareCenter::default()),
@@ -64,16 +65,20 @@ pub async fn get_all_sites() -> AppResult<Vec<Box<dyn WebSiteInterface>>> {
         Box::new(mit_research::MITResearch::default()),
         Box::new(moneyforward_developers_blog::MoneyForwardDevelopersBlog::default()),
         Box::new(motex::MoTex::default()),
+        Box::new(nhk_news::NhkNews::default()),
+        Box::new(nikkei_cyber::NikkeiCyber::default()),
         Box::new(nikkei_xtech::NikkeiXTech::default()),
         Box::new(piyolog::Piyolog::default()),
         Box::new(qiita_blog::QiitaBlog::default()),
         Box::new(rust_blog::RustBlog::default()),
         Box::new(sakura_internet_techblog::SakuraInternetTechBlog::default()),
         Box::new(sansan::Sansan::default()),
-        Box::new(sbbit::Sbbit::default()),
+        // ビジネス＋IT はボット対策で 403 を返すため，回避せず登録から外す．
         Box::new(scan_net_security::ScanNetSecurity::default()),
         Box::new(security_next::SecurityNext::default()),
-        Box::new(sophos_news::SophosNews::default()),
+        Box::new(securityweek::SecurityWeek::default()),
+        // Sophos の公式 feed は www.sophos.com へ転送され，ブラウザ以外の取得を拒むため，回避せず登録から外す．
+        // Box::new(sophos_news::SophosNews::default()),
         Box::new(stockmark_news::StockmarkNews::default()),
         Box::new(stockmark_techblog::StockmarkTechBlog::default()),
         Box::new(supership::Supership::default()),
@@ -81,8 +86,7 @@ pub async fn get_all_sites() -> AppResult<Vec<Box<dyn WebSiteInterface>>> {
         Box::new(techno_edge::TechnoEdge::default()),
         Box::new(the_record::TheRecord::default()),
         Box::new(tokyo_univ_engineering::TokyoUniversityEngineering::default()),
-        Box::new(trend_micro_security_news::TrendMicroSecurityNews::default()),
-        Box::new(trend_micro_security_advisories::TrendMicroSecurityAdvisories::default()),
+        // Trend Micro の旧 feeds.trendmicro.com は廃止され，現行の公式 RSS が無いため登録から外す．
         Box::new(yahoo_news_it::YahooNewsIT::default()),
         Box::new(yahoo_japan_techblog::YahooJapanTechBlog::default()),
         Box::new(zen_mu_tech::ZenmuTech::default()),
@@ -130,17 +134,27 @@ mod tests {
 
     #[tokio::test]
     async fn test_all_sites_include_security_incident_sources() {
-        let site_names: Vec<String> = get_all_sites()
-            .await
-            .unwrap()
-            .iter()
-            .map(|site| site.site_name())
-            .collect();
+        let site_names: Vec<String> = get_all_sites().await.unwrap().iter().map(|site| site.site_name()).collect();
 
-        for expected in ["piyolog", "ScanNetSecurity", "The Record"] {
+        for expected in [
+            "piyolog",
+            "ScanNetSecurity",
+            "The Record",
+            "日経 サイバーセキュリティー",
+            "NHK ニュース",
+            "SecurityWeek",
+            "BleepingComputer",
+        ] {
             assert!(
                 site_names.iter().any(|name| name == expected),
                 "missing security incident source: {expected}"
+            );
+        }
+
+        for disabled in ["Trend Micro Security News", "Trend Micro Security Advisories", "ビジネス＋IT"] {
+            assert!(
+                site_names.iter().all(|name| name != disabled),
+                "disabled source is still registered: {disabled}"
             );
         }
     }
@@ -163,12 +177,7 @@ mod tests {
             let result = site.get_articles().await;
             match result {
                 Ok(site_articles) => {
-                    event!(
-                        Level::INFO,
-                        "Site Name:{} Articles Count:{}",
-                        site.site_name(),
-                        site_articles.len()
-                    );
+                    event!(Level::INFO, "Site Name:{} Articles Count:{}", site.site_name(), site_articles.len());
                     articles.extend(site_articles);
                 }
                 Err(e) => {
@@ -186,10 +195,8 @@ mod tests {
         init_logger("INFO").expect("Failed to initialize logger");
 
         // テスト対象のサイト（clean_content を適用したもの）
-        let test_sites: Vec<Box<dyn WebSiteInterface>> = vec![
-            Box::new(qiita_blog::QiitaBlog::default()),
-            Box::new(tech_crunch::TechCrunch::default()),
-        ];
+        let test_sites: Vec<Box<dyn WebSiteInterface>> =
+            vec![Box::new(qiita_blog::QiitaBlog::default()), Box::new(tech_crunch::TechCrunch::default())];
 
         for site in test_sites {
             let mut site = site;
@@ -217,44 +224,21 @@ mod tests {
             let (html, text) = match site.parse_article(&article.article_url).await {
                 Ok(result) => result,
                 Err(e) => {
-                    event!(
-                        Level::WARN,
-                        "Failed to parse article from {}: {}",
-                        site_name,
-                        e
-                    );
+                    event!(Level::WARN, "Failed to parse article from {}: {}", site_name, e);
                     continue;
                 }
             };
 
             // 除外されるべき要素が含まれていないことを確認
-            assert!(
-                !html.contains("<nav>"),
-                "{}: nav should be removed",
-                site_name
-            );
-            assert!(
-                !html.contains("<script>"),
-                "{}: script should be removed",
-                site_name
-            );
-            assert!(
-                !html.contains("<aside>"),
-                "{}: aside should be removed",
-                site_name
-            );
+            assert!(!html.contains("<nav>"), "{}: nav should be removed", site_name);
+            assert!(!html.contains("<script>"), "{}: script should be removed", site_name);
+            assert!(!html.contains("<aside>"), "{}: aside should be removed", site_name);
 
             // コンテンツが存在することを確認
             assert!(!html.is_empty(), "{}: html should not be empty", site_name);
             assert!(!text.is_empty(), "{}: text should not be empty", site_name);
 
-            event!(
-                Level::INFO,
-                "{}: html length={}, text length={}",
-                site_name,
-                html.len(),
-                text.len()
-            );
+            event!(Level::INFO, "{}: html length={}, text length={}", site_name, html.len(), text.len());
         }
     }
 
@@ -275,16 +259,12 @@ mod tests {
                 let mut site = site;
                 let articles = site.get_articles().await?;
                 if articles.is_empty() {
-                    return Err(crate::shared::errors::AppError::ScrapeError(
-                        "No articles found".to_string(),
-                    ));
+                    return Err(crate::shared::errors::AppError::ScrapeError("No articles found".to_string()));
                 }
 
                 let (_, text) = site.parse_article(&articles[0].article_url).await?;
                 if text.is_empty() {
-                    return Err(crate::shared::errors::AppError::ScrapeError(
-                        "Article text is empty".to_string(),
-                    ));
+                    return Err(crate::shared::errors::AppError::ScrapeError("Article text is empty".to_string()));
                 }
 
                 let preview: String = text.chars().take(50).collect();
@@ -301,10 +281,6 @@ mod tests {
             }
         }
 
-        assert!(
-            failures.is_empty(),
-            "security incident site checks failed:\n{}",
-            failures.join("\n")
-        );
+        assert!(failures.is_empty(), "security incident site checks failed:\n{}", failures.join("\n"));
     }
 }

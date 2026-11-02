@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0" xml:base="https://www.sophos.com">
+  <channel>
+    <title>Category: Threat Research</title>
+    <link>https://www.sophos.com/en-us/blog/category/threat-research</link>
+    <description></description>
+    <language>en</language>
+    <item>
+      <title>Malicious Claude Code extension distributed through Cursor marketplace</title>
+      <link>https://www.sophos.com/en-us/blog/malicious-claude-code-extension-distributed-through-cursor-marketplace</link>
+      <description><![CDATA[<p><strong>Categories:</strong> Threat Research</p><p><strong>Tags:</strong> advisory, Cursor</p>]]></description>
+      <pubDate>Fri, 30 Oct 2026 00:00:00 GMT</pubDate>
+      <guid isPermaLink="false">bltae8907fa538b66b8</guid>
+    </item>
+    <item>
+      <title>AI used in Aur0ra ransomware testing and execution</title>
+      <link>https://www.sophos.com/en-us/blog/ai-used-in-aur0ra-ransomware-testing-and-execution</link>
+      <description><![CDATA[<p>The GOLD OGRE threat group has used AI extensively to develop tools and to orchestrate and execute ransomware operations</p><p><strong>Categories:</strong> Threat Research</p><p><strong>Tags:</strong> AI, Ransomware, Aur0ra</p>]]></description>
+      <pubDate>Thu, 29 Oct 2026 00:00:00 GMT</pubDate>
+      <guid isPermaLink="false">blt9ee0e4b339111488</guid>
+    </item>
+    <item>
+      <title>Node2Shell (CVE-2026-111497) in active exploitation</title>
+      <link>https://www.sophos.com/en-us/blog/node2shell-cve-2026-111497-in-active-exploitation</link>
+      <description><![CDATA[<p><strong>Categories:</strong> Threat Research</p><p><strong>Tags:</strong> advisory, vulnerability, Node2Shell, Brotli</p>]]></description>
+      <pubDate>Wed, 28 Oct 2026 00:00:00 GMT</pubDate>
+      <guid isPermaLink="false">blt9fb6fc964ae9b60d</guid>
+    </item>
+    <item>
+      <title>Proof-of-concept exploit released for PHP vulnerabilities (CVE-2026-109618, CVE-2026-109619)</title>
+      <link>https://www.sophos.com/en-us/blog/proof-of-concept-exploit-released-for-php-vulnerabilities-109618-109619</link>
+      <description><![CDATA[<p><strong>Categories:</strong> Threat Research</p><p><strong>Tags:</strong> advisory, vulnerability, php</p>]]></description>
+      <pubDate>Wed, 21 Oct 2026 00:00:00 GMT</pubDate>
+      <guid isPermaLink="false">bltf897adb4e814d8b4</guid>
+    </item>
+    <item>
+      <title>BRONZE SANDCASTLE deploys modified Meterpreter shells</title>
+      <link>https://www.sophos.com/en-us/blog/bronze-sandcastle-deploys-modified-meterpreter-shells</link>
+      <description><![CDATA[<p>&lt;p&gt;The China-based threat group uses DLL sideloading in these attacks&lt;/p&gt;</p><p><strong>Categories:</strong> Threat Research</p><p><strong>Tags:</strong> BRONZE SANDCASTLE, Meterpreter, Sandboxie</p>]]></description>
+      <pubDate>Tue, 20 Oct 2026 00:00:00 GMT</pubDate>
+      <guid isPermaLink="false">blt7d3642827934f9d6</guid>
+    </item>
+    <item>
+      <title>Graph reconnaissance and ServiceNow user enumeration in a modern identity intrusion</title>
+      <link>https://www.sophos.com/en-us/blog/graph-reconnaissance-and-servicenow-user-enumeration-in-a-modern-identity-intrusion</link>
+      <description><![CDATA[<p>No novelty required to be effective</p><p><strong>Categories:</strong> Threat Research, X-ops, Sophos SecOps</p><p><strong>Tags:</strong> incident response</p>]]></description>
+      <pubDate>Mon, 19 Oct 2026 00:00:00 GMT</pubDate>
+      <guid isPermaLink="false">blt3ac1e6583a6248d6</guid>
+    </item>
+    <item>
+      <title>ConnectWise Cloud Backup application abused in cross-tenant token sweep</title>
+      <link>https://www.sophos.com/en-us/blog/connectwise-cloud-backup-application-abused-in-token-sweep</link>
+      <description><![CDATA[<p>&lt;p&gt;Automated sign-ins used the vendor&apos;s Entra application identity to request Microsoft Graph tokens across consenting tenants&lt;/p&gt;</p><p><strong>Categories:</strong> Threat Research</p><p><strong>Tags:</strong> connectwise</p>]]></description>
+      <pubDate>Mon, 19 Oct 2026 00:00:00 GMT</pubDate>
+      <guid isPermaLink="false">blta719c8e904949312</guid>
+    </item>
+    <item>
+      <title>building intent-based access control without reading minds</title>
+      <link>https://www.sophos.com/en-us/blog/building-intent-based-access-control-without-reading-minds</link>
+      <description><![CDATA[<p>&lt;p&gt;This article was first published &lt;a href=&quot;https://www.linkedin.com/pulse/building-intent-based-access-control-without-reading-minds-borges-dxg6e/&quot; target=&quot;_self&quot;&gt;on LinkedIn&lt;/a&gt;.&lt;/p&gt;</p><p><strong>Categories:</strong> AI Research, Threat Research</p><p><strong>Tags:</strong> AI, AI RESEARCH, Threat Research</p>]]></description>
+      <pubDate>Tue, 13 Oct 2026 00:00:00 GMT</pubDate>
+      <guid isPermaLink="false">blt268bb54a7363fbf2</guid>
+    </item>
+    <item>
+      <title>Citrix NetScaler vulnerability (CVE-2026-88779) in active exploitation</title>
+      <link>https://www.sophos.com/en-us/blog/citrix-netscaler-vulnerability-cve-2026-88779-in-active-exploitation</link>
+      <description><![CDATA[<p><strong>Categories:</strong> Threat Research</p><p><strong>Tags:</strong> advisory, vulnerability, Citrix</p>]]></description>
+      <pubDate>Mon, 05 Oct 2026 00:00:00 GMT</pubDate>
+      <guid isPermaLink="false">bltb8cf3ff930c9cb7c</guid>
+    </item>
+    <item>
+      <title>TerminalFix and Lorem Ipsum Loader enable covert tunneling</title>
+      <link>https://www.sophos.com/en-us/blog/terminalfix-and-lorem-ipsum-loader-enable-covert-tunneling</link>
+      <description><![CDATA[<p>The activity is linked to a broader campaign that previously used a different delivery mechanism</p><p><strong>Categories:</strong> Threat Research</p><p><strong>Tags:</strong> TerminalFix, clickfix, Lorem Ipsum Loader</p>]]></description>
+      <pubDate>Wed, 30 Sep 2026 00:00:00 GMT</pubDate>
+      <guid isPermaLink="false">blt096d265cd5d8f2ac</guid>
+    </item>
+    <item>
+      <title>Citrix NetScaler vulnerabilities (CVE-2026-88771, CVE-2026-88772) in active exploitation</title>
+      <link>https://www.sophos.com/en-us/blog/citrix-netscaler-cve-2026-88771-cve-2026-88772-in-active-exploitation</link>
+      <description><![CDATA[<p><strong>Categories:</strong> Threat Research</p><p><strong>Tags:</strong> advisory, vulnerability, Citrix</p>]]></description>
+      <pubDate>Mon, 28 Sep 2026 00:00:00 GMT</pubDate>
+      <guid isPermaLink="false">blt02c5aef1dc0b82c0</guid>
+    </item>
+    <item>
+      <title>Kiteworks recommends server shutdown pending possible attack</title>
+      <link>https://www.sophos.com/en-us/blog/kiteworks-recommends-server-shutdown-pending-possible-attack</link>
+      <description><![CDATA[<p><strong>Categories:</strong> Threat Research</p><p><strong>Tags:</strong> advisory, Kiteworks</p>]]></description>
+      <pubDate>Fri, 25 Sep 2026 00:00:00 GMT</pubDate>
+      <guid isPermaLink="false">bltb07c2bea1cc85648</guid>
+    </item>
+    <item>
+      <title>September Patch Tuesday haul includes 973 CVEs</title>
+      <link>https://www.sophos.com/en-us/blog/september-2026-patch-tuesday</link>
+      <description><![CDATA[<p>&lt;p&gt;Windows takes 718 fixes… but what if it was actually a slow month?&lt;/p&gt;</p><p><strong>Categories:</strong> Threat Research</p><p><strong>Tags:</strong> Patch Tuesday, x-ops, Threat Research</p>]]></description>
+      <pubDate>Wed, 16 Sep 2026 00:00:00 GMT</pubDate>
+      <guid isPermaLink="false">bltecc75e75e14545cd</guid>
+    </item>
+    <item>
+      <title>Cisco Secure Email Gateway vulnerability (CVE-2026-76461) in active exploitation</title>
+      <link>https://www.sophos.com/en-us/blog/cisco-secure-email-gateway-vulnerability-cve-2026-76461-in-active-exploitation</link>
+      <description><![CDATA[<p><strong>Categories:</strong> Threat Research</p><p><strong>Tags:</strong> advisory, vulnerability, Cisco</p>]]></description>
+      <pubDate>Tue, 15 Sep 2026 00:00:00 GMT</pubDate>
+      <guid isPermaLink="false">blt7a9a5a595fbc6c7e</guid>
+    </item>
+    <item>
+      <title>ai research messageboards</title>
+      <link>https://www.sophos.com/en-us/blog/ai-research-messageboards</link>
+      <description><![CDATA[<p>&lt;p&gt;This article was first published &lt;a href=&quot;https://www.linkedin.com/pulse/messageboards-all-you-need-nash-borges-iav6c&quot; target=&quot;_blank&quot;&gt;on LinkedIn.&lt;/a&gt;&lt;/p&gt;</p><p><strong>Categories:</strong> AI Research, Threat Research</p><p><strong>Tags:</strong> AI, AI Cybersecurity, Threat Research</p>]]></description>
+      <pubDate>Tue, 15 Sep 2026 00:00:00 GMT</pubDate>
+      <guid isPermaLink="false">blt63552c92c7ef980f</guid>
+    </item>
+  </channel>
+</rss>

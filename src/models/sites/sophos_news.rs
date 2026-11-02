@@ -4,7 +4,7 @@ use chrono::DateTime;
 use feed_parser::parsers;
 use request::Url;
 
-const URL: &str = "https://www.sophos.com/en-us/blog/feed";
+const URL: &str = "https://news.sophos.com/en-us/category/threat-research/feed";
 
 #[derive(Debug, Clone)]
 pub struct SophosNews {
@@ -18,6 +18,24 @@ impl SophosNews {
             site_name: "Sophos News".to_string(),
             url: Url::parse(URL).unwrap(),
         }
+    }
+
+    fn parse_feed(&self, raw: &str) -> AppResult<Vec<WebArticle>> {
+        let feeds = parsers::rss2::parse(raw).map_err(|error| AppError::ScrapeError(format!("Failed to parse RSS: {error}")))?;
+        feeds
+            .into_iter()
+            .map(|feed| {
+                let publish_date = feed.publish_date.ok_or_else(|| AppError::ScrapeError("Missing publish_date".into()))?;
+                Ok(WebArticle::new(
+                    self.site_name(),
+                    self.site_url().to_string(),
+                    feed.title,
+                    feed.link,
+                    feed.description.unwrap_or_default(),
+                    DateTime::parse_from_rfc2822(&publish_date)?.into(),
+                ))
+            })
+            .collect()
     }
 }
 
@@ -43,33 +61,9 @@ impl WebSiteInterface for SophosNews {
         Ok(Cookie::default())
     }
     async fn get_articles(&mut self) -> AppResult<Vec<WebArticle>> {
-        let url = Url::parse(URL).unwrap();
         let cookies = self.login().await?;
-        let response = self.request(url.as_str(), &cookies).await?;
-        let feeds = match parsers::rss2::parse(response.text().await?.as_str()) {
-            Ok(feeds) => feeds,
-            Err(e) => {
-                return Err(AppError::ScrapeError(format!("Failed to parse RSS: {}", e)));
-            }
-        };
-        let articles = feeds
-            .iter()
-            .map(|feed| -> AppResult<WebArticle> {
-                let publish_date = feed
-                    .publish_date
-                    .clone()
-                    .ok_or_else(|| AppError::ScrapeError("Missing publish_date".into()))?;
-                Ok(WebArticle::new(
-                    self.site_name(),
-                    self.site_url().to_string(),
-                    feed.title.clone(),
-                    feed.link.clone(),
-                    feed.description.clone().unwrap_or("".to_string()),
-                    DateTime::parse_from_rfc2822(&publish_date)?.into(),
-                ))
-            })
-            .collect::<AppResult<Vec<WebArticle>>>()?;
-        Ok(articles)
+        let response = self.request(self.url.as_str(), &cookies).await?;
+        self.parse_feed(&response.text().await?)
     }
     async fn parse_article(&mut self, url: &str) -> AppResult<(Html, Text)> {
         let url = Url::parse(url).unwrap();
@@ -80,15 +74,30 @@ impl WebSiteInterface for SophosNews {
         let article = match document.select(&selector).next() {
             Some(article) => article,
             None => {
-                return Err(AppError::ScrapeError(format!(
-                    "Failed to find article content: {:?}",
-                    selector
-                )));
+                return Err(AppError::ScrapeError(format!("Failed to find article content: {:?}", selector)));
             }
         };
         let raw_html = article.html().to_string();
         let html = self.clean_content(&raw_html);
         let text = html2md::rewrite_html(&html, false);
         Ok((self.trim_text(&html), self.trim_text(&text)))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parses_sophos_threat_research_feed_fixture() {
+        let site = SophosNews::default();
+        let fixture = include_str!("../../../tests/fixtures/sophos_threat_research.xml");
+        let articles = site.parse_feed(fixture).unwrap();
+
+        assert_eq!(articles.len(), 15);
+        assert!(articles.iter().all(|article| {
+            article.article_url.starts_with("https://www.sophos.com/en-us/blog/") && !article.title.is_empty() && article.timestamp.timestamp() > 0
+        }));
+        assert_eq!(site.site_url().as_str(), "https://news.sophos.com/en-us/category/threat-research/feed");
     }
 }
