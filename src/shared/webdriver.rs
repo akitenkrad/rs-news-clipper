@@ -35,14 +35,6 @@ impl ManagedChromeDriver {
     }
 
     pub async fn launch_with(options: LaunchOptions) -> Result<Self, BoxError> {
-        Self::launch_configured(options, true).await
-    }
-
-    pub async fn launch_without_automation_evasion(options: LaunchOptions) -> Result<Self, BoxError> {
-        Self::launch_configured(options, false).await
-    }
-
-    async fn launch_configured(options: LaunchOptions, use_automation_evasion: bool) -> Result<Self, BoxError> {
         let (platform, binary_name) = detect_platform()?;
 
         let client = Client::new();
@@ -95,14 +87,7 @@ impl ManagedChromeDriver {
         if let Some(user_data_dir) = options.user_data_dir {
             caps.add_arg(&format!("--user-data-dir={}", user_data_dir.display()))?;
         }
-        if use_automation_evasion {
-            // 既存の呼び出し元との互換性のため，従来の起動設定を維持する．
-            caps.add_arg("--disable-blink-features=AutomationControlled")?;
-            caps.add_arg(
-                "--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) \
-                 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
-            )?;
-        }
+        // サイトのボット検出をすり抜ける設定（navigator.webdriver の抑止・UA の偽装）は使わない（2026-11-02）．
         let driver = match WebDriver::new(&format!("http://127.0.0.1:{}", port), caps).await {
             Ok(d) => d,
             Err(e) => {

@@ -471,7 +471,7 @@ async fn wait_for_login_success(driver: &WebDriver) -> AppResult<BrowserLoginRes
 
 async fn perform_browser_login(user: &str, password: &str, headless: bool, profile_dir: &Path) -> AppResult<BrowserLoginResult> {
     std::fs::create_dir_all(profile_dir).map_err(|_| browser_error("failed to create Nikkei Chrome profile directory"))?;
-    let managed = ManagedChromeDriver::launch_without_automation_evasion(LaunchOptions {
+    let managed = ManagedChromeDriver::launch_with(LaunchOptions {
         headless,
         user_data_dir: Some(profile_dir.to_path_buf()),
     })
@@ -527,7 +527,7 @@ async fn refresh_cookie_from_profile() -> AppResult<Cookie> {
     let profile_dir = profile_dir()?;
     std::fs::create_dir_all(&profile_dir).map_err(|_| browser_error("failed to create Nikkei Chrome profile directory"))?;
     let headless = std::env::var("NIKKEI_LOGIN_HEADFUL").as_deref() != Ok("1");
-    let managed = ManagedChromeDriver::launch_without_automation_evasion(LaunchOptions {
+    let managed = ManagedChromeDriver::launch_with(LaunchOptions {
         headless,
         user_data_dir: Some(profile_dir),
     })
@@ -693,7 +693,7 @@ pub async fn auto_login_with_fresh_profile() -> AppResult<Cookie> {
 pub async fn manual_login() -> AppResult<Cookie> {
     let profile_dir = profile_dir()?;
     std::fs::create_dir_all(&profile_dir).map_err(|_| browser_error("failed to create Nikkei Chrome profile directory"))?;
-    let managed = ManagedChromeDriver::launch_without_automation_evasion(LaunchOptions {
+    let managed = ManagedChromeDriver::launch_with(LaunchOptions {
         headless: false,
         user_data_dir: Some(profile_dir),
     })
