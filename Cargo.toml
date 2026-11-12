@@ -12,7 +12,7 @@ derive-new = "0.7.0"
 dirs = "5"
 dotenvy = "0.15.7"
 fast_html2md = "0.0.50"
-feed-parser = "1.0.12"
+feed-parser = "2.0.1"
 indicatif = "0.18.3"
 openai-tools = { git = "https://github.com/akitenkrad/rs-openai-tools", branch = "main" }
 regex = "1.12.2"
